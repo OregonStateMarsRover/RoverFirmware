@@ -1,5 +1,4 @@
 CURRENT BUGS:
-System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.
 
 TO BE TESTED:
 Communcation over RS485
@@ -14,6 +13,11 @@ TO BE IMPLEMENTED:
 Current measurement
 Limit switches and indexing
 Fault detection
+
+
+FIXED BUGS:
+System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.  This was fixed by adjusting the baud rate.  However, the system clock speed may have to be adjusted in order for the beaglebone communication to work properly.  (Note that only the setting for 9600 baud was adjusted.  The others are probably still wrong)
+
 
 
 EXPLANATION:
