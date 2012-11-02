@@ -27,7 +27,10 @@ struct USART_Port {
 	unsigned char txen_pin_bm;
 };
 
-struct USART_Port usart_ports[7];
+/* The XMEGA D4 only contains the ports 0 and 2 that would
+ * be on an XMEGA A, so we only need to count up to 3 here.
+ */
+struct USART_Port usart_ports[3];
 
 struct USART {
 	char port_num;

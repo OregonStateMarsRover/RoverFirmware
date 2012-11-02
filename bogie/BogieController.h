@@ -6,27 +6,11 @@
 #define BOGIE_CONTROLLER_H
 
 #include "BogieCommon.h"
-#include "Sabertooth.h"
-#include "Encoders.h"
 
-#include "TC_driver.h"
-#include "qdec_driver.h"
 
-struct BogieControllerData {
-	CommInterface mainboard_inf;
-	struct USART motor_port;
-	struct USART mainboard_port;
-	
-	PacketQueue pktQueue;
-	CommPacket queuedPackets[6];
-	unsigned char queuedData[6 * 20];
-};
-
-struct BogieControllerData bogie_controller;
 
 void bogie_controller_init(void);
 
-void parse_command( CommPacket *pkt );
 
 
 #endif

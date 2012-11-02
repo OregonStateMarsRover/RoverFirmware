@@ -16,8 +16,23 @@
 #include "USART.h"
 #include "PacketQueuer.h"
 #include "CommInterface.h"
+#include "Encoders.h"
+#include "Sabertooth.h"
 
+struct BogieControllerData {
+	CommInterface bb_com;
+	struct USART motor;
+	struct USART bb;
+	
+	PacketQueue pktQueue;
+	// Where do these numbers come from???
+	CommPacket queuedPackets[6];
+	unsigned char queuedData[6 * 20];
+};
 
+struct BogieControllerData bogie;
+
+void parse_command( CommPacket *pkt );
 
 struct PIDobject 
 {
@@ -31,8 +46,9 @@ struct PIDobject
 
 typedef struct PIDobject PIDobject;
 
-void usart_send_byte(USART_t *usart, uint8_t data);
 
 uint8_t pid(PIDobject *pid, uint16_t desired, uint16_t actual);
+
+void pid_init( void );
 
 #endif

@@ -5,6 +5,9 @@
  *  Author: mfortner
  */ 
 
+#ifndef BOGIE_ENCODERS
+#define BOGIE_ENCODERS
+
 #include "BogieCommon.h"
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 2U
@@ -18,3 +21,7 @@ uint16_t get_drive_speed( void );
 void actuator_init( void );
 
 uint16_t get_actuator_pos( void );
+
+void encoders_init( void );
+
+#endif

@@ -9,7 +9,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/pgmspace.h>
+#include <avr/pgmspace.h>	// to access flash memory
 #include <util/delay.h>
 
 #define USE_RS485
@@ -68,58 +68,28 @@ void USART_InitPortStructs( void ) {
 	USART_BAUD_TABLE[USART_BAUD_250000] = 1;
 	USART_BSCALE_TABLE[USART_BAUD_250000] = 1;	
 	
+	/*
+	 * There are normally 7 UART ports, but on the XMEGA D4,
+	 * there are only two.
+	 * We've maintained the port numbers for cross-compatibility,
+	 * but the other ports are just deleted since they don't apply
+	 * to this chip.  That's what revision control is for, right?
+	 */
 	// USART0
 	usart_ports[0].usart_port = &USARTC0;
 	usart_ports[0].gpio_port = &PORTC;
 	usart_ports[0].tx_pin_bm = PIN3_bm;
 	usart_ports[0].rx_pin_bm = PIN2_bm;
 	usart_ports[0].txen_pin_bm = PIN1_bm;
-	//usart_ports[0].txen_pin_bm = 0;
 	
-	// USART1
-// 	usart_ports[1].usart_port = &USARTC1;
-// 	usart_ports[1].gpio_port = &PORTC;
-// 	usart_ports[1].tx_pin_bm = PIN7_bm;
-// 	usart_ports[1].rx_pin_bm = PIN6_bm;
-// 	usart_ports[1].txen_pin_bm = PIN5_bm;
 	
 	// USART2
 	usart_ports[2].usart_port = &USARTD0;
 	usart_ports[2].gpio_port = &PORTD;
 	usart_ports[2].tx_pin_bm = PIN3_bm;
-	usart_ports[2].rx_pin_bm = PIN2_bm;
-	//usart_ports[2].txen_pin_bm = PIN1_bm;
+	usart_ports[2].rx_pin_bm = 0; //PIN2_bm;
 	usart_ports[2].txen_pin_bm = 0;
 	
-	// USART3
-// 	usart_ports[3].usart_port = &USARTD1;
-// 	usart_ports[3].gpio_port = &PORTD;
-// 	usart_ports[3].tx_pin_bm = PIN7_bm;
-// 	usart_ports[3].rx_pin_bm = PIN6_bm;
-// 	usart_ports[3].txen_pin_bm = PIN5_bm;
-	
-	// USART4
-// 	usart_ports[4].usart_port = &USARTE0;
-// 	usart_ports[4].gpio_port = &PORTE;
-// 	usart_ports[4].tx_pin_bm = PIN3_bm;
-// 	usart_ports[4].rx_pin_bm = PIN2_bm;
-// 	usart_ports[4].txen_pin_bm = PIN1_bm;
-	
-	// USART5
-// 	usart_ports[5].usart_port = &USARTE1;
-// 	usart_ports[5].gpio_port = &PORTE;
-// 	usart_ports[5].tx_pin_bm = PIN7_bm;
-// 	usart_ports[5].rx_pin_bm = PIN6_bm;
-// 	usart_ports[5].txen_pin_bm = PIN4_bm;
-	
-	// USART6
-// 	usart_ports[6].usart_port = &USARTF0;
-// 	usart_ports[6].gpio_port = &PORTF;
-// 	usart_ports[6].tx_pin_bm = PIN3_bm;
-// 	usart_ports[6].rx_pin_bm = PIN2_bm;
-// 	usart_ports[6].txen_pin_bm = PIN4_bm;
-	
-	PORTE.DIRSET = 1<<1;
 }
 
 void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485, bool isSerialProtocol) {
@@ -144,7 +114,11 @@ void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_ra
 	}
 	
 	USART_Table[port] = serial;
-	
+
+	// Set the TxD pin high
+	serial->port.gpio_port->OUTSET = serial->port.tx_pin_bm;
+
+	// set the TxD pin as an output, RxD as an input
 	serial->port.gpio_port->DIRSET = serial->port.tx_pin_bm;
 	serial->port.gpio_port->DIRCLR = serial->port.rx_pin_bm;
 	
@@ -155,38 +129,46 @@ void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_ra
 	}
 	#endif
 	
-	cli();
+	cli();	// disable interrupts
 		
-	USART_Format_Set(serial->port.usart_port, USART_CHSIZE_8BIT_gc,
-			USART_PMODE_DISABLED_gc, false); // 8 bits, no parity, one stop bit
-	
 	serial->port.usart_port->CTRLA = ((serial->port.usart_port)->CTRLA & ~USART_RXCINTLVL_gm) | USART_RXCINTLVL_LO_gc;
 	
 	if (use_rs485 || isSerialProtocol) { // only enable the TXC interrupt if we're in RS485 mode, as it's only used to clear the TXEN line
+		// set transmit completion as low-level interrupt
 		serial->port.usart_port->CTRLA = ((serial->port.usart_port)->CTRLA & ~USART_TXCINTLVL_gm) | USART_TXCINTLVL_LO_gc;
 	}
 	
 	if (isSerialProtocol) {
+	// set data register empty as low-level interrupt
 	//	serial->port.usart_port->CTRLA = ((serial->port.usart_port)->CTRLA & ~USART_DREINTLVL_gm) | USART_DREINTLVL_LO_gc;
 	}
 	
+	// Set the baud rate
 	serial->port.usart_port->BAUDCTRLA = USART_BAUD_TABLE[baud_rate] & 0xFF;
 	serial->port.usart_port->BAUDCTRLB = (USART_BAUD_TABLE[baud_rate] >> 8);
 	
 	serial->port.usart_port->BAUDCTRLB |= ((USART_BSCALE_TABLE[baud_rate]&0x0F) << USART_BSCALE0_bp);
 	
-	USART_Rx_Enable(serial->port.usart_port);
-	USART_Tx_Enable(serial->port.usart_port);
+	// Set the mode of operation
+	USART_Format_Set(serial->port.usart_port, USART_CHSIZE_8BIT_gc,
+			USART_PMODE_DISABLED_gc, false); // 8 bits, no parity, one stop bit
 	
-	PMIC.CTRL |= PMIC_LOLVLEX_bm;
+	// Enable the transmitter and receiver
+	if( serial->port.tx_pin_bm)
+			USART_Rx_Enable(serial->port.usart_port);
+	if( serial->port.tx_pin_bm)
+			USART_Tx_Enable(serial->port.usart_port);
 	
-	sei();
+	PMIC.CTRL |= PMIC_LOLVLEX_bm;	// enable low-level interrupts
+	
+	sei();	// enable interrupts
 }
 
 unsigned short USART_Write(struct USART * serial, unsigned char * buf, unsigned short num_bytes) {
 	unsigned short written;
 	unsigned char tempCTRLA = serial->port.usart_port->CTRLA;
 	
+	// Disable data register empty interrupt
 	tempCTRLA = (tempCTRLA & ~USART_DREINTLVL_gm) | USART_DREINTLVL_OFF_gc;
 	serial->port.usart_port->CTRLA = tempCTRLA;
 	
@@ -197,6 +179,7 @@ unsigned short USART_Write(struct USART * serial, unsigned char * buf, unsigned 
 	}
 	#endif
 	
+	// re-enable data register empty low-level interrupt
 	tempCTRLA = serial->port.usart_port->CTRLA;
 	tempCTRLA = (tempCTRLA & ~USART_DREINTLVL_gm) | USART_DREINTLVL_LO_gc;
 	serial->port.usart_port->CTRLA = tempCTRLA;
@@ -335,21 +318,6 @@ ISR(USARTC0_DRE_vect)
 	USART_DataRegEmpty(0);
 }
 
-// ISR(USARTC1_RXC_vect)
-// {
-// 	USART_RXIntComplete(1);
-// }
-// 
-// ISR(USARTC1_TXC_vect)
-// {
-// 	USART_TXIntComplete(1);
-// }
-// 
-// ISR(USARTC1_DRE_vect)
-// {
-// 	USART_DataRegEmpty(1);
-// }
-
 ISR(USARTD0_RXC_vect)
 {
 	USART_RXIntComplete(2);
@@ -364,71 +332,3 @@ ISR(USARTD0_DRE_vect)
 {
 	USART_DataRegEmpty(2);
 }
-
-// ISR(USARTD1_RXC_vect)
-// {
-// 	USART_RXIntComplete(3);
-// }
-// 
-// ISR(USARTD1_TXC_vect)
-// {
-// 	USART_TXIntComplete(3);
-// }
-// 
-// ISR(USARTD1_DRE_vect)
-// {
-// 	USART_DataRegEmpty(3);
-// }
-// 
-// ISR(USARTE0_RXC_vect)
-// {
-// 	USART_RXIntComplete(4);
-// }
-// 
-// ISR(USARTE0_TXC_vect)
-// {
-// 	USART_TXIntComplete(4);
-// }
-// 
-// ISR(USARTE0_DRE_vect)
-// {
-// 	USART_DataRegEmpty(4);
-// }
-// 
-// ISR(USARTE1_RXC_vect)
-// {
-// 	USART_RXIntComplete(5);
-// }
-// 
-// ISR(USARTE1_TXC_vect)
-// {
-// 	/*USART_Table[5]->charCtr++;
-// 	if (USART_Table[5]->charCtr==100) {
-// 		_delay_ms(10);
-// 		USART_Table[5]->charCtr=0;
-// 	}*/
-// 	//CommByteTransmitted(USART_Table[5]);
-// 	
-// 	USART_TXIntComplete(5);
-// }
-// 
-// ISR(USARTE1_DRE_vect)
-// {
-// //	USART_DataRegEmpty(5);
-// }
-// 
-// ISR(USARTF0_RXC_vect)
-// {
-// 	USART_RXIntComplete(6);
-// }
-// 
-// ISR(USARTF0_TXC_vect)
-// {
-// 	USART_TXIntComplete(6);
-// }
-// 
-// ISR(USARTF0_DRE_vect)
-// {
-// 	USART_DataRegEmpty(6);
-// }
-

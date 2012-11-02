@@ -13,15 +13,23 @@
 #define ACTUATOR_REVERSE_CMD 5
 #define TIMEOUT_CMD 14
 
+uint8_t desired_speed = 0;
+uint8_t desired_angle = 0;
+
 struct USART *port;
+PIDobject act_pid;
 
 void sabertooth_init(struct USART *p)
 {
 	port = p;
-	//uint8_t opcode = TIMEOUT_CMD;
 	//uint8_t timeout = 10; //10 * 100ms = 1s
 
-	//send_command(opcode, timeout);
+	//send_command(TIMEOUT_CMD, timeout);
+	
+
+
+
+
 }
 
 void send_command(uint8_t opcode, uint8_t data)
@@ -61,3 +69,4 @@ void drive_set(int8_t speed)
 {
 	motor_set(speed, DRIVE_FORWARD_CMD, DRIVE_REVERSE_CMD);
 }
+

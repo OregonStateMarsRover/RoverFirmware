@@ -1,7 +1,6 @@
 CURRENT BUGS:
 System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.
 
-
 TO BE TESTED:
 Communcation over RS485
 Communication over Serial
@@ -12,6 +11,7 @@ TO BE IMPLEMENTED:
 Current measurement
 Optical encooder ( position )
 Magnetic encoder ( speed )
+Limit switches and indexing
 
 
 
