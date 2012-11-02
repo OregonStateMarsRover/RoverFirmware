@@ -54,6 +54,7 @@ int main(void)
 	 * to test the motor controllers */
 	while(1) {
 		drive_set( i );
+		// actuator_set( i );	// Be careful with this until we have limits set up
 		_delay_ms( 40 );
 
 		if( i == 127 ) {
