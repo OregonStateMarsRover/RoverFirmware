@@ -84,7 +84,7 @@ PROJECTNAME=bogie_controller
 # (list all files to compile, e.g. 'a.c b.cpp as.S'):
 # Use .cc, .cpp or .C suffix for C++ files, use .S 
 # (NOT .s !!!) for assembly source code files.
-PRJSRC=BogieController.C BogieCommon.C Sabertooth.C USART.c RingBuffer.c
+PRJSRC=BogieCommon.c BogieController.c Encoders.c PacketQueuer.c qdec_driver.c RingBuffer.c Sabertooth.c SerialProtocol.c TC_driver.c USART.c  CommInterface.c
  
 # additional includes (e.g. -I/path/to/mydir)
 #INC=-I/path/to/include

@@ -15,8 +15,7 @@
 
 #include "CommInterface.h"
 
-void CommInterfaceInit(CommInterface * inf, USART * serPort) {
-	char i;
+void CommInterfaceInit(CommInterface * inf, struct USART * serPort) {
 	inf->port = serPort;
 	
 	SerialDataInitialize(&(inf->serData));
@@ -45,7 +44,7 @@ void CommInterfaceInit(CommInterface * inf, USART * serPort) {
 	//inf->port->port.usart_port->CTRLA = ((inf->port->port.usart_port)->CTRLA & ~USART_TXCINTLVL_gm) | USART_TXCINTLVL_LO_gc;
 	#endif
 	
-	memset(inf->errorCount, 0, 7);
+	memset((void*)inf->errorCount, 0, 7);
 }
 
 void CommInterfaceSetRXCallback(CommInterface * inf, void (*func)(CommInterface * inf)) {
@@ -74,7 +73,7 @@ bool CommSendPacket(CommInterface * inf, CommPacket * pkt) {
 	if (length > SERIAL_TRANSMIT_BUFFER_SIZE) // TODO: Dynamically size SerialProtocol.transmit_data so we don't have this mysterious 20 byte max packet size
 		length = SERIAL_TRANSMIT_BUFFER_SIZE;
 	
-	memcpy(inf->serData.transmit_data, pkt->data, length);
+	memcpy((void*)inf->serData.transmit_data, (void*)pkt->data, length);
 	
 	USART_TransmitMode(inf->port, true);
 	if (SerialTransmit(&inf->serData, pkt->target, length)==0) {
@@ -87,8 +86,6 @@ bool CommSendPacket(CommInterface * inf, CommPacket * pkt) {
 }
 
 char CommGetPacket(CommInterface * inf, CommPacket * pkt, unsigned char maxbuflen) {
-	char ret;
-	CommPacket * newFirst;
 	
 	#ifndef X86GCC
 	//cli();
@@ -107,7 +104,7 @@ char CommGetPacket(CommInterface * inf, CommPacket * pkt, unsigned char maxbufle
 		pkt->length = inf->rcvdPacket.length;
 	}
 	
-	memcpy(pkt->data, inf->rcvdPacket.data, pkt->length);
+	memcpy((void*)pkt->data, (void*)inf->rcvdPacket.data, pkt->length);
 
 	inf->hasRcvdPacket = 0;
 	
@@ -116,7 +113,6 @@ char CommGetPacket(CommInterface * inf, CommPacket * pkt, unsigned char maxbufle
 }
 
 char CommPeekPacket(CommInterface * inf, CommPacket * pkt, unsigned char maxbuflen) {
-	CommPacket * newFirst;
 	
 	if (inf->firstRX==0)
 		return 0;
@@ -143,7 +139,7 @@ char CommPeekPacket(CommInterface * inf, CommPacket * pkt, unsigned char maxbufl
 		return 0;
 	}*/
 	
-	memcpy(pkt->data, inf->firstRX->data, pkt->length);
+	memcpy((void*)pkt->data, (void*)inf->firstRX->data, pkt->length);
 	
 	return 1;
 }
@@ -161,7 +157,7 @@ void CommDeletePacket(CommPacket * pkt) {
 	pkt->length = 0;
 
 	if (pkt->data)
-		free(pkt->data);
+		free((void*)pkt->data);
 	
 	pkt->data = 0;
 }
@@ -178,11 +174,11 @@ void CommDeleteInterface(CommInterface * inf) {
 	}
 }
 
-void CommByteReceived(USART * port, unsigned char dat) {
+void CommByteReceived(struct USART * port, unsigned char dat) {
 	ProcessDataChar(&(((CommInterface*)(port->ref))->serData), dat);
 }
 
-void CommByteTransmitted(USART * port) {
+void CommByteTransmitted(struct USART * port) {
 	//USART_WriteByte(port,'B');
 	/*if (!port->use_rs485)
 		_delay_us(50);*/
@@ -209,7 +205,6 @@ void CommQueueForTx(SerialData * ser, unsigned char data) {
 }
 
 void CommPacketReceived(SerialData * ser) {
-	CommPacket * pkt;
 	CommInterface* inf;
 	
 	inf = (CommInterface*)ser->ref;
@@ -219,7 +214,7 @@ void CommPacketReceived(SerialData * ser) {
 	
 	inf->rcvdPacket.target = ser->receive_address;
 	inf->rcvdPacket.length = ser->receive_data_count;
-	memcpy(inf->rcvdPacket.data, ser->receive_data, inf->rcvdPacket.length);
+	memcpy((void*)inf->rcvdPacket.data, (void*)ser->receive_data, inf->rcvdPacket.length);
 	
 	inf->hasRcvdPacket = 1;
 	

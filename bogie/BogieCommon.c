@@ -23,12 +23,14 @@ void pid_init( void ) {
 	/*** Initialize Timer for PID loop***/
 		
 
-	encoders_init();
+	//encoders_init();
 	
+	/*	Undefined references??
 	TC0_t *loop_timer = &TCD0;
 	TC_SetPeriod( loop_timer, 195U); //set period to (2000000/1024)(ticks/sec)/10(loops/sec) = 195 ticks/loop
 	TC0_ConfigClockSource( loop_timer,  TC_CLKSEL_DIV1024_gc);  //set TCD0 to count the system clock. frequency should be 2,000,000 ticks/sec
 	TC0_SetOverflowIntLevel( loop_timer, TC_OVFINTLVL_LO_gc);  //set TCD0 to trigger an interrupt when every overflow (100ms)
+	*/
 
 }
 

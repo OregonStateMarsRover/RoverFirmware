@@ -42,5 +42,21 @@ void bogie_controller_init(void)
 int main(void)
 {
 	bogie_controller_init();
+
+	int8_t i = 0;
+	int8_t inc = 1;
+
+	while(1) {
+		drive_set( i );
+		i += inc;
+		_delay_ms( 10 );
+
+		if( i == 127 ) {
+			inc = -1;
+		} else if( i == -127 ) {
+			inc = 1;
+		}
+	}
+
 	return 0;
 }
