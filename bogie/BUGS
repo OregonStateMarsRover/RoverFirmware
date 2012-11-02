@@ -1,0 +1,22 @@
+CURRENT BUGS:
+System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.
+
+
+TO BE TESTED:
+Communcation over RS485
+Communication over Serial
+Ring buffer (It's a circular queue)
+
+
+TO BE IMPLEMENTED:
+Current measurement
+Optical encooder ( position )
+Magnetic encoder ( speed )
+
+
+
+EXPLANATION:
+I'm too lazy to use the bug tracking integrated into Github, so this 
+is what I do instead for small projects.
+This file is tracked along with the rest of the repository.  So, as 
+we find bugs and fix bugs, we make note of that in this file.
