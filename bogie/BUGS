@@ -3,16 +3,17 @@ System untested.  Can write code to the XMega, but the communication to the Sabe
 
 TO BE TESTED:
 Communcation over RS485
-Communication over Serial
+Communication to Sabertooth
 Ring buffer (It's a circular queue)
+Optical encooder ( position )
+Magnetic encoder ( speed )
+PID
 
 
 TO BE IMPLEMENTED:
 Current measurement
-Optical encooder ( position )
-Magnetic encoder ( speed )
 Limit switches and indexing
-
+Fault detection
 
 
 EXPLANATION:

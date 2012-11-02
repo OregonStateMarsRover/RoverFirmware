@@ -1,5 +1,5 @@
 /*BogieController.c
- *Authors: Mike Fortner, Chris Newman
+ *Authors: Marshal Horn, Mike Fortner, Chris Newman
  */
 
 #include "BogieController.h"

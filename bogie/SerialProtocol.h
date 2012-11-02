@@ -6,8 +6,7 @@
 extern "C" {
 #endif
 
-#include <stdio.h>
-#include <stdbool.h>
+#include "avr_compiler.h"
 
 
 /* Control Characters and thier Escaped Equivelants */

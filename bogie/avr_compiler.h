@@ -130,6 +130,8 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 /*! \brief Define the delay_us macro for GCC. */
 #define delay_us( us )   (_delay_us( us ))

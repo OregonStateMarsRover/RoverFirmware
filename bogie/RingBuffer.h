@@ -9,7 +9,7 @@
 #ifndef HAVE_RINGBUFFER_H
 #define HAVE_RINGBUFFER_H
 
-#include <stdbool.h>
+#include "avr_compiler.h"
 
 struct RingBuffer {
 	unsigned char * data;

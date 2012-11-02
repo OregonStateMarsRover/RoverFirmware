@@ -7,7 +7,7 @@
 #ifndef HAVE_PACKETQUEUER_H
 #define HAVE_PACKETQUEUER_H
 
-#include <stdbool.h>
+#include "avr_compiler.h"
 
 #include "CommInterface.h"
 

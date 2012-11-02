@@ -8,7 +8,10 @@
 #ifndef HAVE_COMMINTERFACE_H
 #define HAVE_COMMINTERFACE_H
 
-#include <stdbool.h>
+#include <string.h>
+#include <stdlib.h>	//for memcpy
+
+#include "avr_compiler.h"
 
 #include "SerialProtocol.h"
 

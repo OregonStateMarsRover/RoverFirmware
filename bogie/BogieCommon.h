@@ -5,13 +5,7 @@
 #ifndef BOGIE_COMMON_H
 #define BOGIE_COMMON_H
 
-//CPU frequency for delay.h
-# define F_CPU 2000000UL
-
-#include <avr/io.h>
-#include <util/delay.h>
-#include <avr/interrupt.h>
-#include <stdint.h>
+#include "avr_compiler.h"
 
 #include "USART.h"
 #include "PacketQueuer.h"

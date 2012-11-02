@@ -7,10 +7,6 @@
  *
  **********************************************************/
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>	// to access flash memory
-#include <util/delay.h>
 
 #define USE_RS485
 
@@ -168,7 +164,7 @@ unsigned short USART_Write(struct USART * serial, unsigned char * buf, unsigned 
 	unsigned short written;
 	unsigned char tempCTRLA = serial->port.usart_port->CTRLA;
 	
-	// Disable data register empty interrupt
+	// Disable the data register interrupt to prevent access to ring buffer while we're writing data
 	tempCTRLA = (tempCTRLA & ~USART_DREINTLVL_gm) | USART_DREINTLVL_OFF_gc;
 	serial->port.usart_port->CTRLA = tempCTRLA;
 	

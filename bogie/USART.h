@@ -9,12 +9,12 @@
  *
  **********************************************************/
 
+
 #ifndef HAVE_USART_H
 #define HAVE_USART_H
 
-#include <avr/io.h>
 
-#include <stdbool.h>
+#include "avr_compiler.h"
 
 #include "RingBuffer.h"
 

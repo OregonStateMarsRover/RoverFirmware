@@ -5,13 +5,6 @@
  * Copyright (C) OSURC 2010-2011.
  ******************************************************/
 
-#include <string.h>
-#include <stdlib.h>
-
-#ifndef X86GCC
-#include <avr/interrupt.h>
-#include <util/delay.h>
-#endif
 
 #include "CommInterface.h"
 
