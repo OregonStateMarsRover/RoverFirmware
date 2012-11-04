@@ -8,7 +8,7 @@ About this repository
 ---------------------
 
 This repository holds embedded code for the 2013 Oregon State University Robotics Club Mars Rover (University Rover Challenge).
-The main person working on it is currently [Marshal Horn](mailto:kamocat@gmail.com "email"), though you may also want to talk to Ben Narin or John Zeller.
+The main person working on it is currently Marshal Horn ( kamocat@gmail.com ), though you may also want to talk to Ben Narin or John Zeller.
 
 This robot is capable of hurting itself and you.  That means this code is safety-critical.
-So, if you are on the Master branch, don't make a commit until you've tested the code and you KNOW it works.
+So, if you are testing code, branch off to work on it.  Don't merge with Master until you KNOW it works.
