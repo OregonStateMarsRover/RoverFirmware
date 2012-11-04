@@ -2,8 +2,32 @@
  * Encoders.c
  *
  * Created: 4/24/2012 4:18:17 PM
- *  Author: mfortner
+ *  Authors: mfortner, Marshal Horn
  */ 
+
+
+/* Edits:
+ * I think these funciton calls could pretty-much be just moved in here.
+ * Read the datasheet on the encoders.  It doesn't look that hard.
+ *
+ * Two things to be wary of:
+ * For the rotation encoders, we can expect a max frequency of 30 khz,
+ * and a max range of 84,960.  WARNING: This is larger than the 16-bit
+ * counter, so you'll need to handle an overflow interrupt in there.
+ *
+ * Also, we don't have documentation on the drive motors and magnetic
+ * encoders for them.  Perhaps this is because the mechanical team
+ * is going to change them?
+ *
+ *
+ * LIMITS:
+ * I think the limits and indexing functions should also go in this file.
+ * That means Encoders.h should call Sabertooth.h, so if a limit is hit,
+ * it can stop the motor.
+ * However, I think the current sensing should be in its own file.
+ * - Marshal
+ */
+
 
 #include "Encoders.h"
 void encoders_init() {
@@ -34,5 +58,5 @@ void encoders_init() {
 
 uint16_t get_actuator_pos()
 {
-	return 0;
+	return TCC0.CNT;
 }
