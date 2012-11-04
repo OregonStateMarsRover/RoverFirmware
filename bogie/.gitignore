@@ -1,0 +1,13 @@
+# This file tells git what not to commit, so we can be lazy
+# and say "git add ." instead of specifying each file.
+
+# Compiled files:
+*.o
+*.out
+*.hex
+*.map
+*.lst
+
+
+# Editor files
+*.swp
