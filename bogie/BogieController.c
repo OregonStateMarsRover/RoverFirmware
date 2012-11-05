@@ -4,8 +4,10 @@
 
 #include "BogieController.h"
 
-#define GREEN 0x10	// green LED
-#define RED 0x20	// red LED
+#define GREEN 0x10	// green LED on port D
+#define RED 0x20	// red LED on port D
+#define LIM0 0x04	// limit 0 on port B
+#define LIM1 0x08	// limit 1 on port B
 
 
 void init(void)
@@ -15,8 +17,8 @@ void init(void)
 	/***set I/O port directions***/
 	PORTA.DIR = 0x00;
 	PORTB.DIR = 0x00;
-	PORTC.DIR = PIN1_bm | PIN3_bm;
-	PORTD.DIR = PIN1_bm | PIN2_bm | PIN3_bm | PIN4_bm | PIN5_bm;
+	PORTC.DIR = 0b00001010;	//only outputs are UART TX
+	PORTD.DIR = 0b00111110;	//all outputs; rest are unused
 
 	/***Motor Driver USART init***/
 		
@@ -46,64 +48,40 @@ int main(void)
 {
 	init();
 
-	int8_t i = 0;
-	int8_t inc = 1;
-	uint8_t flash_mode;
-
-	/* Ramp the drive motor speed up and down,
-	 * to test the motor controllers */
+	/* Currently testing LEDs and limit switches.
+	 * The motor controller wasn't acting how I thought it should, but it may be
+	 * how I'm writing to the LEDs, because they seemed funny as well.
+	 * There may be more effecient ways of doing this (a bit-shift, for example),
+	 * but for now I'm going to treat each limit seperately, and use the OUTSET
+	 * and OUTCLR registers, since that's what I was doing before.
+	 *
+	 * The LEDs should mimic the states of the limit switches.  So, if both 
+	 * switches are disconnected (or pressed), then both LEDs should be on.
+	 * This also serves as a test of whether the limit switches are normally-
+	 * closed or normally-open.  They should be normally-closed, so that if 
+	 * they get disconnected, they will read as pressed, and the motor will
+	 * not move.  (In fact, the motor controller can notice that and tell the
+	 * beaglebone that the limit switches are disconnected)
+	 */
 	while(1) {
 		drive_set( i );
-		// actuator_set( i );	// Be careful with this until we have limits set up
-		_delay_ms( 100 );
+		PORTD.OUTTGL = GREEN;
+
+
+		if( ~PORTB.IN & (LIM0 | LIM1) ) {
+			actuator_set( 0 );
+			PORTD.OUTSET = RED;
+		} else {
+			actuator_set( i );	// Be careful with this until we have limits set up
+			PORTD.OUTCLR = RED;
+		}
+
+		_delay_ms( 50 );
 
 		if( i == 127 ) {
 			inc = -1;
 		} else if( i == -127 ) {
 			inc = 1;
-		}
-		i += inc;
-
-
-		/* Flash the LEDs so we know what should be happening.
-		 * ON means the motor is currently GOING that direction.
-		 * BLINK means the motor is CHANGING TOWARDS that direction.
-		 */
-		flash_mode = (i & 0x80) | (inc & 0x02);
-		switch( flash_mode ) {
-				case 0x02:
-						PORTD.OUTTGL = GREEN;
-						PORTD.OUTCLR = RED;
-						break;
-				case 0x00:
-						PORTD.OUTSET = GREEN;
-						PORTD.OUTTGL = RED;
-						break;
-				case 0x80:
-						PORTD.OUTCLR = GREEN;
-						PORTD.OUTTGL = RED;
-						break;
-				case 0x82:
-						PORTD.OUTTGL = GREEN;
-						PORTD.OUTSET = RED;
-						break;
-		}
-
-		/* Simple speed indication
-		 */
-		/*
-		if( i > 0 ) {
-			PORTD.OUTSET = GREEN;
-			PORTD.OUTCLR = RED;
-		} else {
-			PORTD.OUTCLR = GREEN;
-			PORTD.OUTSET = RED;
-		}
-		*/
-
-
-
-
 	}
 
 	return 0;
