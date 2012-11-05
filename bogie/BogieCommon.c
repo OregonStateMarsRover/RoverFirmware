@@ -12,11 +12,11 @@
  * for the 2Mhz clock, and also needs to be adjusted.
  */
 void set_clock( void ) {
-	CCP = IOREG;	// enable change of protected registers
-	CTRL = 3;		// use external clock
+	CCP = 0xD8;	// enable change of protected registers
+	CLK.CTRL = 3;		// use external clock
 
-	CCP = IOREG;	// enable change of protected registers
-	PSCTRL = 0;		// disable prescaler
+	CCP = 0xD8;	// enable change of protected registers
+	CLK.PSCTRL = 0;		// disable prescaler
 
 
 }

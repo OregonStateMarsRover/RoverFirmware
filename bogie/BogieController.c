@@ -4,8 +4,8 @@
 
 #include "BogieController.h"
 
-#define GREEN 0x10;	// green LED
-#define RED 0x20;	// red LED
+#define GREEN 0x10	// green LED
+#define RED 0x20	// red LED
 
 
 void init(void)
@@ -55,7 +55,7 @@ int main(void)
 	while(1) {
 		drive_set( i );
 		// actuator_set( i );	// Be careful with this until we have limits set up
-		_delay_ms( 40 );
+		_delay_ms( 100 );
 
 		if( i == 127 ) {
 			inc = -1;
@@ -69,9 +69,9 @@ int main(void)
 		 * ON means the motor is currently GOING that direction.
 		 * BLINK means the motor is CHANGING TOWARDS that direction.
 		 */
-		flash_mode = (i & 0x80) | (inc & 0x01);
+		flash_mode = (i & 0x80) | (inc & 0x02);
 		switch( flash_mode ) {
-				case 0x01:
+				case 0x02:
 						PORTD.OUTTGL = GREEN;
 						PORTD.OUTCLR = RED;
 						break;
@@ -83,11 +83,23 @@ int main(void)
 						PORTD.OUTCLR = GREEN;
 						PORTD.OUTTGL = RED;
 						break;
-				case 0x81:
+				case 0x82:
 						PORTD.OUTTGL = GREEN;
 						PORTD.OUTSET = RED;
 						break;
 		}
+
+		/* Simple speed indication
+		 */
+		/*
+		if( i > 0 ) {
+			PORTD.OUTSET = GREEN;
+			PORTD.OUTCLR = RED;
+		} else {
+			PORTD.OUTCLR = GREEN;
+			PORTD.OUTSET = RED;
+		}
+		*/
 
 
 

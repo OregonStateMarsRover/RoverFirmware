@@ -87,5 +87,5 @@ void drive_set(int8_t speed)
 
 // stop all motors
 void motor_stop( void ) {
-	send_command( BOTH_FWD, 0 );
+	send_command( MIXED_FWD, 0 );
 }
