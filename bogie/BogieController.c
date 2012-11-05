@@ -4,8 +4,12 @@
 
 #include "BogieController.h"
 
+/* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
 #define RED 0x20	// red LED on port D
+
+/* Limits are pulled up by default.
+ * If they are low, that means it is okay */
 #define LIM0 0x04	// limit 0 on port B
 #define LIM1 0x08	// limit 1 on port B
 
@@ -48,32 +52,22 @@ int main(void)
 {
 	init();
 
-	/* Currently testing LEDs and limit switches.
-	 * The motor controller wasn't acting how I thought it should, but it may be
-	 * how I'm writing to the LEDs, because they seemed funny as well.
-	 * There may be more effecient ways of doing this (a bit-shift, for example),
-	 * but for now I'm going to treat each limit seperately, and use the OUTSET
-	 * and OUTCLR registers, since that's what I was doing before.
-	 *
-	 * The LEDs should mimic the states of the limit switches.  So, if both 
-	 * switches are disconnected (or pressed), then both LEDs should be on.
-	 * This also serves as a test of whether the limit switches are normally-
-	 * closed or normally-open.  They should be normally-closed, so that if 
-	 * they get disconnected, they will read as pressed, and the motor will
-	 * not move.  (In fact, the motor controller can notice that and tell the
-	 * beaglebone that the limit switches are disconnected)
-	 */
+	int i = 0;
+
+	int inc = 1;
+
 	while(1) {
 		drive_set( i );
+		i += inc;
 		PORTD.OUTTGL = GREEN;
 
 
-		if( ~PORTB.IN & (LIM0 | LIM1) ) {
+		if( PORTB.IN & (LIM0 | LIM1) ) {
 			actuator_set( 0 );
-			PORTD.OUTSET = RED;
+			PORTD.OUTCLR = RED;
 		} else {
 			actuator_set( i );	// Be careful with this until we have limits set up
-			PORTD.OUTCLR = RED;
+			PORTD.OUTSET = RED;
 		}
 
 		_delay_ms( 50 );
@@ -82,6 +76,7 @@ int main(void)
 			inc = -1;
 		} else if( i == -127 ) {
 			inc = 1;
+		}
 	}
 
 	return 0;

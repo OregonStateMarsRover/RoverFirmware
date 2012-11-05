@@ -4,10 +4,6 @@ Bug file
 CURRENT BUGS:
 --------------------
 
-Sabertooth is acting a little funny during my ramping; I think it's ramping
-faster than it should.  (I suppose I could measure the time and make sure).
-However, I suspect it has to do with my LEDs.  So, that's what I'm testing
-right now.
 
 TO BE TESTED:
 -------------------
@@ -22,7 +18,7 @@ TO BE IMPLEMENTED:
 --------------------------
 
 * Current measurement
-* Limit switches and indexing
+* Limit switches and indexing (working on it)
 * Fault detection
 
 
@@ -30,6 +26,12 @@ FIXED BUGS:
 ---------------------
 
 * System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.  This was fixed by adjusting the baud rate.  However, the system clock speed may have to be adjusted in order for the beaglebone communication to work properly.  (Note that only the setting for 9600 baud was adjusted.  The others are probably still wrong)
+
+* Sabertooth is acting a little funny during my ramping; I think it's ramping
+faster than it should.  (I suppose I could measure the time and make sure).
+However, I suspect it has to do with my LEDs.  This is fixed by correcting the
+DIP switches on the Sabertooths, and making sure the #define macros don't have
+semicolons in them.  Also, the LEDs are on when pulled low, not high.
 
 
 CONFIRMED WORKING:

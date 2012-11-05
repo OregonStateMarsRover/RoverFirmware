@@ -28,7 +28,7 @@ PIDobject act_pid;
 void sabertooth_init(struct USART *p)
 {
 	port = p;
-	uint8_t timeout = 2; //2 * 100ms = 200ms
+	uint8_t timeout = 1; //1 * 100ms = 100ms
 
 	send_command(TIMEOUT_CMD, timeout);
 	
