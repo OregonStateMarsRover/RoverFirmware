@@ -3,6 +3,8 @@ Bug file
 
 CURRENT BUGS:
 --------------------
+* The Sabertooth needs some time for initialization before it is ready to
+take configuration.  (In this case, the timeout)
 
 
 TO BE TESTED:
