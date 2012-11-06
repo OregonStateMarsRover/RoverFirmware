@@ -35,6 +35,10 @@ uint8_t pid(PIDobject *pid, uint16_t desired, uint16_t actual)
 	return (uint8_t)(pid->p * p_error + pid->i * i_error + pid->d * d_error);
 }
 
+/* This needs the encoders to be functional before it will work.
+ * The higher priority for encoders is the quadrature encoder for tracking wheel turn, because
+ * the wheel rotation is always commanded in terms of position, not speed.
+ */
 void pid_init( void ) {
 
 	/*** Initialize Timer for PID loop***/
@@ -52,11 +56,29 @@ void pid_init( void ) {
 }
 
 
+/* How can we make this run every time a packet is received?
+ * Of course, we should only pay attention to packets that are sent too this controller.
+ * I believe the packet handlers will accept packets addressed to anyone, and it's our
+ * job to make sure it works out.
+ * How are we assigning unique IDs to each one, anyways?  Maybe there should be a special
+ * boot mode, or a command sent over RS485.  I think the limit switches and the encoders
+ * are the closest thing to physical inputs we have.  (Too bad there's no DIP switches
+ * on the board)
+ */
 void parse_command(CommPacket *pkt)
 {
+	// Should be changed to speed PID
 	drive_set((int8_t)pkt->data[0]);
+
+	// Should be changed to position PID
+	actuator_set((int8_t)pkt->data[1]);
 }
 
+/* This hasn't been decided yet.
+ * Some think there should be an ACK after a message is received - I think that should
+ * be taken care of in a lower-level protocol (rs485 is full-duplex, after all).  However,
+ * the best plan for now is to stick with the already existing (and tested) code.
+ */
 void reply(CommPacket *pkt) {
 	CommPacket respPkt;
 	respPkt.target = 2;
