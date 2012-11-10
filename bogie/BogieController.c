@@ -16,6 +16,8 @@
 
 void init(void)
 {
+	set_clock( ); // set clock t 16Mhz
+
 	USART_InitPortStructs();
 	
 	/***set I/O port directions***/

@@ -5,6 +5,10 @@ CURRENT BUGS:
 --------------------
 * The Sabertooth needs some time for initialization before it is ready to
 take configuration.  (In this case, the timeout)
+* Periphrial clock is too slow for 115.2 kbaud uart.  Clock configuration change is untested.
+(For now, the idea is to leave the CPU on the 2Mhz clock, and just run the periphrials on the
+external 16Mhz crystal.  It is also possible to run them on the internal 32Mhz clock, but the 
+16Mhz crystal should be more accurate)
 
 
 TO BE TESTED:
