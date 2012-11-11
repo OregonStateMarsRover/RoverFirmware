@@ -64,6 +64,7 @@ int main(void)
 		PORTD.OUTTGL = GREEN;
 
 
+		/*
 		if( PORTB.IN & (LIM0 | LIM1) ) {
 			actuator_set( 0 );
 			PORTD.OUTCLR = RED;
@@ -71,8 +72,9 @@ int main(void)
 			actuator_set( i );	// Be careful with this until we have limits set up
 			PORTD.OUTSET = RED;
 		}
+		*/
 
-		_delay_ms( 50 );
+		_delay_ms( 500 );
 
 		if( i == 127 ) {
 			inc = -1;

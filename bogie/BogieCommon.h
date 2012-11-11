@@ -12,6 +12,7 @@
 #include "CommInterface.h"
 #include "Encoders.h"
 #include "Sabertooth.h"
+#include "clksys_driver.h"
 
 struct BogieControllerData {
 	CommInterface bb_com;

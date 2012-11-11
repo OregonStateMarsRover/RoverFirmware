@@ -12,18 +12,23 @@
  * for the 2Mhz clock, and also needs to be adjusted.
  */
 void set_clock( void ) {
-	OSC.XOSCCTRL = 0b11001011;	// set up oscillator for 16 Mhz
-	OSC.CTRL |= 0x40;	// Start the external clock.
 	// Wait until the oscilator is stable
-	while( !(OSC.STATUS & 0x40) );
-	OSC.PLLCTRL = 0b11000001;	//Set PLL to use external clock
-	/*
+	PORTD.DIRSET = 0x20;
+	while( !(OSC.STATUS & 0x40) ) {
+		PORTD.OUTTGL = 0x20;	// toggle red LED
+		OSC.XOSCCTRL = 0b11011011;	// set up oscillator for 16 Mhz
+		OSC.CTRL |= 0x40;	// Start the external clock.
+		_delay_ms(50);
+	}
+	PORTD.OUTCLR = 0x20;	// turn off red LED
+	//OSC.PLLCTRL = 0b11000001;	//Set PLL to use external clock
+	
 	CCP = 0xD8;	// enable change of protected registers
 	CLK.CTRL = 3;		// use external clock
 
 	CCP = 0xD8;	// enable change of protected registers
 	CLK.PSCTRL = 0;		// disable prescaler
-	*/
+	
 
 
 }
