@@ -5,11 +5,6 @@ CURRENT BUGS:
 --------------------
 * The Sabertooth needs some time for initialization before it is ready to
 take configuration.  (In this case, the timeout)
-* Periphrial clock is too slow for 115.2 kbaud uart.  Clock configuration change is untested.
-(For now, the idea is to leave the CPU on the 2Mhz clock, and just run the periphrials on the
-external 16Mhz crystal.  It is also possible to run them on the internal 32Mhz clock, but the 
-16Mhz crystal should be more accurate)
-
 
 TO BE TESTED:
 -------------------
@@ -38,6 +33,8 @@ faster than it should.  (I suppose I could measure the time and make sure).
 However, I suspect it has to do with my LEDs.  This is fixed by correcting the
 DIP switches on the Sabertooths, and making sure the #define macros don't have
 semicolons in them.  Also, the LEDs are on when pulled low, not high.
+
+* Periphrial clock is too slow for 115.2 kbaud uart.  This was fixed by using the external crystal and increasing the clock speed to 16Mhz.  This also increased the accuracy of the UART, so the baud rate settings are more reliable (and don't need to be adjusted for each individual board).
 
 
 CONFIRMED WORKING:
