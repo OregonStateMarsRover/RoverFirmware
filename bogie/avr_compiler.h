@@ -44,7 +44,7 @@
 
 #ifndef F_CPU
 /*! \brief Define default CPU frequency, if this is not already defined. */
-#define F_CPU 2000000UL
+#define F_CPU 16000000UL
 #endif
 
 #ifndef COMPILER_AVR_H

@@ -107,6 +107,9 @@ void ProcessDataChar (SerialData * s, byte data)
             SerialError(s, ERR_UNEXPECTED_START_BYTE);
             //printf("Unexpected Start Byte: Expected 0x%x, Got 0x%x\n", START_BYTE, data);
         }
+		else if( s->receive_state == PROC_STATE_AWAITING_CHECKSUM ) {
+			SerialStateMachineProcess(s, data);
+		}
         else
         {
             /* Otherwise, unstuff bytes and send data to the state machine */

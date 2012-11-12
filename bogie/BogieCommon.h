@@ -46,4 +46,7 @@ uint8_t pid(PIDobject *pid, uint16_t desired, uint16_t actual);
 
 void pid_init( void );
 
+// Used for setting the system clock to 16Mhz
+void set_clock( void );
+
 #endif

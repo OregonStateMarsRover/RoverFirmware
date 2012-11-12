@@ -31,12 +31,10 @@ void init(void)
 	
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
 	/***Mainboard USART init***/
-	/*
-	USART_Open(&bogie.bb, 0, USART_BAUD_38400, 10, 10, false, true);
+	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 10, 10, true, false);
 	CommInterfaceInit(&bogie.bb_com, &bogie.bb);
 	
-	PacketQueueInit2(&bogie.pktQueue, 6, 20, bogie.queuedPackets, bogie.queuedData);
-	*/
+	//PacketQueueInit2(&bogie.pktQueue, 6, 20, bogie.queuedPackets, bogie.queuedData);
 
 
 
@@ -49,22 +47,43 @@ void init(void)
 }
 
 
+int8_t drive = 50;
+int8_t turn = 0;
+void read_speed( CommInterface * comm ) {
+	drive = comm->rcvdPacket.data[0];
+	turn = comm->rcvdPacket.data[1];
+	PORTD.OUTTGL = RED;
+}
+
+
 
 int main(void)
 {
 	init();
 
-	int i = 0;
 
+	int i = 0;
 	int inc = 1;
 
+	CommInterfaceSetRXCallback( &bogie.bb_com, &read_speed );
+
+	while(1) {
+		drive_set( drive );
+		actuator_set( turn );
+
+		PORTD.OUTTGL = GREEN;
+
+		_delay_ms( 50 );
+	}
+		
+
+	/*
 	while(1) {
 		drive_set( i );
 		i += inc;
 		PORTD.OUTTGL = GREEN;
 
 
-		/*
 		if( PORTB.IN & (LIM0 | LIM1) ) {
 			actuator_set( 0 );
 			PORTD.OUTCLR = RED;
@@ -72,7 +91,6 @@ int main(void)
 			actuator_set( i );	// Be careful with this until we have limits set up
 			PORTD.OUTSET = RED;
 		}
-		*/
 
 		_delay_ms( 500 );
 
@@ -82,6 +100,7 @@ int main(void)
 			inc = 1;
 		}
 	}
+	*/
 
 	return 0;
 }
