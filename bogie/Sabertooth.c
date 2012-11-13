@@ -23,7 +23,6 @@ uint8_t desired_speed = 0;
 uint8_t desired_angle = 0;
 
 struct USART *port;
-PIDobject act_pid;
 
 void sabertooth_init(struct USART *p)
 {

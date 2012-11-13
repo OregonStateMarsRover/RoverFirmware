@@ -16,7 +16,7 @@
 
 void init(void)
 {
-	set_clock( ); // set clock t 16Mhz
+	set_clock( ); // set clock to 16Mhz
 
 	USART_InitPortStructs();
 	
@@ -32,11 +32,10 @@ void init(void)
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
 	/***Mainboard USART init***/
 	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 10, 10, true, false);
-	CommInterfaceInit(&bogie.bb_com, &bogie.bb);
 	
-	//PacketQueueInit2(&bogie.pktQueue, 6, 20, bogie.queuedPackets, bogie.queuedData);
-
-
+	SerialDataInitialize( &bogie.packet );
+	// Set behavior when packet is received
+	bogie.packet.ReceivePacketComplete = handle_packet;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
@@ -47,60 +46,39 @@ void init(void)
 }
 
 
-int8_t drive = 50;
-int8_t turn = 0;
-void read_speed( CommInterface * comm ) {
-	drive = comm->rcvdPacket.data[0];
-	turn = comm->rcvdPacket.data[1];
-	PORTD.OUTTGL = RED;
+/* Basic packet handler to allow me to test the RS485 communication.
+ * This will probably get its own file later
+ */
+void handle_packet( SerialData * s ) {
+	bogie_drive = s->receive_data[0];
+	bogie_turn = s->receive_data[1];
+	PORTD.OUTTGL = 0x20;	// toggle red LED
 }
+
+
 
 
 
 int main(void)
 {
+
 	init();
 
-
-	int i = 0;
-	int inc = 1;
-
-	CommInterfaceSetRXCallback( &bogie.bb_com, &read_speed );
-
 	while(1) {
-		drive_set( drive );
-		actuator_set( turn );
 
-		PORTD.OUTTGL = GREEN;
+		drive_set( bogie_drive );
+		actuator_set( bogie_turn );
+		RingBuffer * buffer = &(bogie.bb.rx_buffer);
+
+		if( RingBufferBytesUsed( buffer ) ) {
+			PORTD.OUTTGL = GREEN;
+			ProcessDataChar( &(bogie.packet), RingBufferGetByte( buffer ) );
+		}
+
 
 		_delay_ms( 50 );
 	}
 		
-
-	/*
-	while(1) {
-		drive_set( i );
-		i += inc;
-		PORTD.OUTTGL = GREEN;
-
-
-		if( PORTB.IN & (LIM0 | LIM1) ) {
-			actuator_set( 0 );
-			PORTD.OUTCLR = RED;
-		} else {
-			actuator_set( i );	// Be careful with this until we have limits set up
-			PORTD.OUTSET = RED;
-		}
-
-		_delay_ms( 500 );
-
-		if( i == 127 ) {
-			inc = -1;
-		} else if( i == -127 ) {
-			inc = 1;
-		}
-	}
-	*/
 
 	return 0;
 }

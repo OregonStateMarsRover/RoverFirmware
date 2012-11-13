@@ -8,9 +8,14 @@
 #include "avr_compiler.h"
 #include "BogieCommon.h"
 
+// Global variables for setting drive speed
+signed char bogie_drive = 50;
+signed char bogie_turn = 0;
+
+void handle_packet( SerialData * s );
 
 
-void bogie_controller_init(void);
+void init(void);
 
 
 
