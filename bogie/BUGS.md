@@ -5,12 +5,13 @@ CURRENT BUGS:
 --------------------
 * The Sabertooth needs some time for initialization before it is ready to
 take configuration.  (In this case, the timeout)
+* Packet handler isn't quite working, although the rs485 communication itself
+seems to be working fine.
 
 TO BE TESTED:
 -------------------
 
-* Communcation over RS485
-* Optical encooder ( position )
+* Optical encoder ( position )
 * Magnetic encoder ( speed )
 * PID
 

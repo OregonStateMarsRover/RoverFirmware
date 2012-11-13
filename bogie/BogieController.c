@@ -47,7 +47,8 @@ void init(void)
 
 
 /* Basic packet handler to allow me to test the RS485 communication.
- * This will probably get its own file later
+ * This will probably get its own file later, but for now, we're using it
+ * as the serial callback.
  */
 void handle_packet( SerialData * s ) {
 	bogie_drive = s->receive_data[0];

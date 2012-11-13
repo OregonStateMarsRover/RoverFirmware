@@ -9,7 +9,7 @@
 #include "BogieCommon.h"
 
 // Global variables for setting drive speed
-signed char bogie_drive = 50;
+signed char bogie_drive = 0;
 signed char bogie_turn = 0;
 
 void handle_packet( SerialData * s );
