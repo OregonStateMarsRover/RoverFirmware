@@ -3,6 +3,7 @@
  */
 
 #include "BogieController.h"
+#include <string.h>
 
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
@@ -31,11 +32,13 @@ void init(void)
 	
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
 	/***Mainboard USART init***/
-	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 10, 10, true, false);
+	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 10, true, false);
 	
 	SerialDataInitialize( &bogie.packet );
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
+	// Return error over RS485
+	bogie.packet.ReceiveDataError = packet_error;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
@@ -57,6 +60,42 @@ void handle_packet( SerialData * s ) {
 }
 
 
+/* Receive data error.
+ * Send error back over RS485
+ */
+void packet_error( SerialData *s, uint8_t errCode ) {
+	char * msg;
+	unsigned short len = 0;
+	switch( errCode ){
+		case ERR_START_BYTE_INSIDE_PACKET:
+			msg = "ERR: startbyte inside packet\r\n";
+			break;
+		case ERR_EXPECTED_START_BYTE:
+			msg = "ERR: no start\r\n";
+			break;
+		case ERR_UNKNOWN_ESCAPED_CHARACTER:
+			msg = "ERR: unknow escape\r\n";
+			break;
+		case ERR_EXCESSIVE_PACKET_LENGTH:
+			msg = "ERR: packet too long\r\n";
+			break;
+		case ERR_CHECKSUM_MISMATCH:
+			msg = "ERR: bad checksum\r\n";
+			break;
+		case ERR_BUFFER_INSUFFICIENT:
+			msg = "ERR: buffer too short\r\n";
+			break;
+		case ERR_RECEIVED_IGNORE_BYTE:
+			msg = "ERR: received bad byte\r\n";
+			break;
+		default:
+			msg = "ERR: unkown\r\n";
+			break;
+	}
+	len = strlen(msg);
+
+	USART_Write( &bogie.bb, (uint8_t *)msg, len );
+}
 
 
 
@@ -64,6 +103,8 @@ int main(void)
 {
 
 	init();
+
+	USART_Write( &(bogie.bb), (uint8_t *)"Welcome!\r\n", 10 );
 
 	while(1) {
 
@@ -73,13 +114,15 @@ int main(void)
 
 		if( RingBufferBytesUsed( buffer ) ) {
 			PORTD.OUTTGL = GREEN;
-			ProcessDataChar( &(bogie.packet), RingBufferGetByte( buffer ) );
+			uint8_t new_data = RingBufferGetByte( buffer );
+			USART_WriteByte( &bogie.bb, new_data );
+			ProcessDataChar( &(bogie.packet), new_data );
 		}
 
 
 		_delay_ms( 50 );
 	}
-		
+
 
 	return 0;
 }

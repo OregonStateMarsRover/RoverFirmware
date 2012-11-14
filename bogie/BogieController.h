@@ -14,6 +14,7 @@ signed char bogie_turn = 0;
 
 void handle_packet( SerialData * s );
 
+void packet_error( SerialData *s, uint8_t errCode );
 
 void init(void);
 

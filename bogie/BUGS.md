@@ -5,8 +5,7 @@ CURRENT BUGS:
 --------------------
 * The Sabertooth needs some time for initialization before it is ready to
 take configuration.  (In this case, the timeout)
-* Packet handler isn't quite working, although the rs485 communication itself
-seems to be working fine.
+* Packet handler has checksum errors if data contains escaped byte
 
 TO BE TESTED:
 -------------------
