@@ -46,7 +46,10 @@ void encoders_init() {
 	                 ACTUATOR_QUADRATURE_LINECOUNT);   //uint8_t lineCount
 	
 	/*** Initialize Counter for Drive encoder***/
+
+	QDEC_TC_Dec_Setup( &TCC1, TC_EVSEL_CH1_gc, DRIVE_ENCODER_LINECOUNT );
 	
+	/*
 	PORTC.DIRCLR = PIN4_bm;				  //set PC4/Pin 14 to input
 	PORTC.PIN4CTRL |= PORT_ISC_RISING_gc;  //set PC4/Pin 14 to trigger events on rising edges
 	
@@ -54,9 +57,27 @@ void encoders_init() {
 	
 	TC1_t *motor_counter = &TCC1;
 	TC1_ConfigClockSource( motor_counter, TC_CLKSEL_EVCH2_gc );  //set TCC1 to count events on channel 2
+	*/
 }
 
-uint16_t get_actuator_pos()
+int16_t get_turn()
 {
 	return TCC0.CNT;
+}
+
+/*! \brief This function return the direction of the counter/QDEC.
+ *
+ * \param qTimer      The timer used for QDEC.
+ *
+ * \retval CW_DIR     if clockwise/up counting,
+ * \retval CCW_DIR    if counter clockwise/down counting.
+ */
+int16_t get_speed()
+{
+	int16_t speed = F_CPU / TCC1.CC1BUFL;
+	if (TCC1.CTRLFSET & TC1_DIR_bm){
+		return speed;
+	}else{
+		return -speed;
+	}
 }

@@ -12,17 +12,13 @@
 #include "qdec_driver.h"
 #include "TC_driver.h"
 
-#define ACTUATOR_QUADRATURE_LINECOUNT 2U
+#define ACTUATOR_QUADRATURE_LINECOUNT 360
 
-//drive encoder functions
+#define DRIVE_MOTOR_LINECOUNT 1
 
-uint16_t get_drive_speed( void );
+uint16_t get_speed( void );
 
-//actuator encoder functions
-
-void actuator_init( void );
-
-uint16_t get_actuator_pos( void );
+uint16_t get_turn( void );
 
 void encoders_init( void );
 
