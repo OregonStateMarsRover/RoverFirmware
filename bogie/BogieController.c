@@ -3,6 +3,7 @@
  */
 
 #include "BogieController.h"
+#include <stdio.h>
 #include <string.h>
 
 #define BOGIE_ADDRESS 5 // Address of this unique bogie controller
@@ -122,8 +123,7 @@ int main(void)
 	uint8_t new_byte;
 	
 #ifdef MOTOR_TEST
-	int8_t i = 0;
-	int8_t dir = 1;
+	int8_t i = 0;	int8_t dir = 1;
 	while(1) {
 		drive_set( i );
 		i += dir;
@@ -134,26 +134,66 @@ int main(void)
 	}
 #endif
 
-
 #ifdef RS485_TEST
 	while(1) {
-
 		USART_Write(&bogie.bb, "Hello World!\n\r", 14 );
 		_delay_ms( 500 );
 	}
 #endif
 
+	USART_Write( &bogie.bb, (uint8_t *)"Encoder test\r\n", 14 );
 
+	int8_t i = 0;
+	int8_t inc = 1;
+	uint8_t flash_mode;
+
+	char msg[20];
+	uint8_t msg_len;
+
+	/* Ramp the drive motor speed up and down,
+	 * to test the motor controllers */
 	while(1) {
-		
-		// Check if rcv buffer overflowed
-		if( bogie.bb.rx_buffer.err ) {
-			PORTD.OUTCLR = RED;
-		} else {
-			PORTD.OUTSET = RED;
+		msg_len = snprintf( msg, 20, "%d, ", get_turn() );
+		if( msg_len > 20 ) msg_len = 20;
+		USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+			
+		actuator_set( i );
+		_delay_ms( 40 );
+
+		if( i == 127 ) {
+			inc = -1;
+		} else if( i == -127 ) {
+			inc = 1;
+		}
+		i += inc;
+
+
+		/* Flash the LEDs so we know what should be happening.
+		 * ON means the motor is currently GOING that direction.
+		 * BLINK means the motor is CHANGING TOWARDS that direction.
+		 */
+		flash_mode = (i & 0x80) | (inc & 0x01);
+		switch( flash_mode ) {
+				case 0x01:
+						PORTD.OUTTGL = GREEN;
+						PORTD.OUTCLR = RED;
+						break;
+				case 0x00:
+						PORTD.OUTSET = GREEN;
+						PORTD.OUTTGL = RED;
+						break;
+				case 0x80:
+						PORTD.OUTCLR = GREEN;
+						PORTD.OUTTGL = RED;
+						break;
+				case 0x81:
+						PORTD.OUTTGL = GREEN;
+						PORTD.OUTSET = RED;
+						break;
 		}
 
 
+/*
 		if( RingBufferBytesUsed( buffer ) ) {
 			PORTD.OUTTGL = GREEN;
 			
@@ -162,9 +202,8 @@ int main(void)
 		} else {
 			_delay_ms( 10 );
 		}
+*/
 	}
-
 
 	return 0;
 }
-

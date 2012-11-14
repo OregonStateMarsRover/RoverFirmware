@@ -47,7 +47,8 @@ void encoders_init() {
 	
 	/*** Initialize Counter for Drive encoder***/
 
-	QDEC_TC_Dec_Setup( &TCC1, TC_EVSEL_CH1_gc, DRIVE_ENCODER_LINECOUNT );
+	// I think the quadrature encoder is TC0 only?
+	//QDEC_TC_Dec_Setup( &TCC1, TC_EVSEL_CH1_gc, DRIVE_ENCODER_LINECOUNT );
 	
 	/*
 	PORTC.DIRCLR = PIN4_bm;				  //set PC4/Pin 14 to input
@@ -74,10 +75,13 @@ int16_t get_turn()
  */
 int16_t get_speed()
 {
-	int16_t speed = F_CPU / TCC1.CC1BUFL;
+	/*
+	int16_t speed = F_CPU / CC1BUFL;
 	if (TCC1.CTRLFSET & TC1_DIR_bm){
 		return speed;
 	}else{
 		return -speed;
 	}
+	*/
+	return 0;
 }

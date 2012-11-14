@@ -14,11 +14,11 @@
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 360
 
-#define DRIVE_MOTOR_LINECOUNT 1
+#define DRIVE_ENCODER_LINECOUNT 1
 
-uint16_t get_speed( void );
+int16_t get_speed( void );
 
-uint16_t get_turn( void );
+int16_t get_turn( void );
 
 void encoders_init( void );
 
