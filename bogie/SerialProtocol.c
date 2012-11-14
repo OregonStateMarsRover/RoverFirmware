@@ -73,6 +73,14 @@ void ProcessDataChar (SerialData * s, byte data)
 {
 	/* Unstuff bytes and locate start bytes here */
 
+	/* The checksum byte should not be escaped.
+	 * It includes the values of the escaped bytes and their escape
+	 * characters, and so escaping it would change its value.
+	 */
+	if (s->receive_state == PROC_STATE_AWAITING_CHECKSUM) {
+		SerialStateMachineProcess(s, data);
+	}
+
 	/* See if the data received is value to ignore
 	 * This most likely occurs in conjunction with
 	 * a frame error: start byte detected, but no
@@ -81,8 +89,7 @@ void ProcessDataChar (SerialData * s, byte data)
 	 * unescaped, because escaping it will change its value, meaning
 	 * it would no longer need escaping.
 	 */
-	if ((data == NULL_BYTE || data == MAX_BYTE) &&
-			(s->receive_state != PROC_STATE_AWAITING_CHECKSUM) )
+	else if (data == NULL_BYTE || data == MAX_BYTE)
 	{
 		SerialError(s, ERR_RECEIVED_IGNORE_BYTE);
 		return;
@@ -93,7 +100,7 @@ void ProcessDataChar (SerialData * s, byte data)
 	 * transfer will be reset, and a new data transfer
 	 * will begin.
 	 */
-	if ((data == START_BYTE) && (s->receive_state != PROC_STATE_AWAITING_CHECKSUM)) /* Start byte */
+	else if (data == START_BYTE)/* Start byte */
 	{
 		if (s->receive_state != PROC_STATE_AWAITING_START_BYTE)
 		{
@@ -113,12 +120,11 @@ void ProcessDataChar (SerialData * s, byte data)
 			SerialError(s, ERR_EXPECTED_START_BYTE);
 			//printf("Unexpected Start Byte: Expected 0x%x, Got 0x%x\n", START_BYTE, data);
 		}
-		else if( s->receive_state == PROC_STATE_AWAITING_CHECKSUM ) {
-			SerialStateMachineProcess(s, data);
-		}
 		else
 		{
 			/* Otherwise, unstuff bytes and send data to the state machine */
+					s->receive_length--;
+					s->receive_checksum += data;
 			if (data == ESCAPE_CHAR) // Escape Character
 			{
 				s->receive_next_char_is_escaped = true;
@@ -139,8 +145,6 @@ void ProcessDataChar (SerialData * s, byte data)
 					 * That sounds like a poor protocol in the first
 					 * place, so whatever.
 					 */
-					s->receive_length--;
-					s->receive_checksum += data;
 					switch (data)
 					{
 						case ESCAPE_CHAR_ESCAPED:
@@ -172,7 +176,6 @@ void SerialStateMachineProcess(SerialData *s, byte data)
 	{
 		case PROC_STATE_AWAITING_ADDRESS:
 			s->receive_address = data;
-			s->receive_checksum += data;
 			s->receive_state = PROC_STATE_AWAITING_LENGTH;
 			break;
 
@@ -190,20 +193,16 @@ void SerialStateMachineProcess(SerialData *s, byte data)
 			else
 			{
 				s->receive_length = data;
-				s->receive_checksum += data;
 				s->receive_state = PROC_STATE_AWAITING_DATA;
 			}
 			break;
 
 		case PROC_STATE_AWAITING_DATA:
 
-			s->receive_length--;
-
-			s->receive_checksum += data;
 			s->receive_data[s->receive_data_count] = data;
 			s->receive_data_count++;
 
-			if (s->receive_length == 1)
+			if (s->receive_length == 1)	// if this was our last byte
 			{
 				s->receive_state = PROC_STATE_AWAITING_CHECKSUM;
 			}
