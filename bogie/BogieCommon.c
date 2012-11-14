@@ -4,67 +4,30 @@
 
 #include "BogieCommon.h"
 
-uint8_t pid(PIDobject *pid, uint16_t desired, uint16_t actual)
-{
-	uint16_t p_error = desired - actual;
 
-	uint16_t i_error = pid->sum_error / pid->dt;
-
-	uint16_t d_error = p_error - pid->prev_error;
-
-	pid->sum_error += p_error;
-	pid->prev_error = p_error;
-
-	return (uint8_t)(pid->p * p_error + pid->i * i_error + pid->d * d_error);
-}
-
-void pid_init( void ) {
-
-	/*** Initialize Timer for PID loop***/
-		
-
-	//encoders_init();
+/* This function sets the clock speed for the microcontroller.
+ * When you change it, make sure to change F_CPU to match.
+ * Currently, it changes the main clock to the external crystal,
+ * and makes the prescaler 1.
+ * However, the 9600 baud setting in UART.c is probably still set
+ * for the 2Mhz clock, and also needs to be adjusted.
+ */
+void set_clock( void ) {
+	// Wait until the oscilator is stable
+	PORTD.DIRSET = 0x20;
+	while( !(OSC.STATUS & 0x08) ) {
+		PORTD.OUTTGL = 0x20;	// toggle red LED
+		OSC.XOSCCTRL = 0b11001011;	// set up oscillator for 16 Mhz
+		OSC.CTRL |= 0x08;	// Start the external clock.
+		_delay_ms(50);
+	}
+	PORTD.OUTSET = 0x20;	// turn off red LED
+	OSC.PLLCTRL = 0b11000001;	//Set PLL to use external clock
 	
-	/*	Undefined references??
-	TC0_t *loop_timer = &TCD0;
-	TC_SetPeriod( loop_timer, 195U); //set period to (2000000/1024)(ticks/sec)/10(loops/sec) = 195 ticks/loop
-	TC0_ConfigClockSource( loop_timer,  TC_CLKSEL_DIV1024_gc);  //set TCD0 to count the system clock. frequency should be 2,000,000 ticks/sec
-	TC0_SetOverflowIntLevel( loop_timer, TC_OVFINTLVL_LO_gc);  //set TCD0 to trigger an interrupt when every overflow (100ms)
-	*/
+	CCP = 0xD8;	// enable change of protected registers
+	CLK.CTRL = 3;		// use external clock
 
+	CCP = 0xD8;	// enable change of protected registers
+	CLK.PSCTRL = 0;		// disable prescaler
 }
 
-/*
-ISR(TCD0_OVF_vect)
-{
- 	PORTD.OUTTGL = 0b00110000;
- 	drive_set(desired_speed); 
- 	actuator_set(pid(&act_pid, desired_angle, get_actuator_pos()));
-}
-*/
-
-
-void parse_command(CommPacket *pkt)
-{
-	drive_set((int8_t)pkt->data[0]);
-}
-
-void reply(CommPacket *pkt) {
-	CommPacket respPkt;
-	respPkt.target = 2;
-	respPkt.length = 2;
-	unsigned char data[2];
-	data[0] = 'B';
-	data[1] = pkt->data[0];
-	respPkt.data = data;
-
-	CommSendPacket(&bogie.bb_com, &respPkt);
-}
-/*
-ISR(TCD0_OVF_vect)
-{
- 	PORTD.OUTTGL = 0b00110000;
- 	drive_set(desired_speed); 
- 	actuator_set(pid(&act_pid, desired_angle, get_actuator_pos()));
-}
-*/

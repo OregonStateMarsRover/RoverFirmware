@@ -22,30 +22,30 @@
 struct CommPacket {
 	volatile unsigned char target; /* Device the packet is sent to (TX) or from (RX). */
 	volatile unsigned char length; /* Number of bytes of data in packet (length of data) */
-	volatile unsigned char * data; /* Data of packet. Must be freed. */
-	
-	struct CommPacket * next; // internally used for tracking RX queue. Do not manipulate.
-};
-typedef struct CommPacket CommPacket;
+		volatile unsigned char * data; /* Data of packet. Must be freed. */
+		
+		struct CommPacket * next; // internally used for tracking RX queue. Do not manipulate.
+	};
+	typedef struct CommPacket CommPacket;
 
-struct CommInterface;
-typedef struct CommInterface CommInterface;
-struct CommInterface {
-	struct USART * port;
-	SerialData serData;
-	
-	CommPacket * firstRX; // beginning of RX queue
-	CommPacket * lastRX; // end of RX queue
-	unsigned int rx_pkts_queued;
-	
-	void (*ReceivePacketComplete)(CommInterface * inf); // callback when a packet is rx'd and available for reading
-	void (*TransmitPacketComplete)(CommInterface * inf); // callback when a packet is rx'd and available for reading
-	
-	CommPacket rcvdPacket;
-	unsigned char rcvdData[20];
-	volatile char hasRcvdPacket;
-	
-	volatile unsigned char errorCount[7];
+	struct CommInterface;
+	typedef struct CommInterface CommInterface;
+	struct CommInterface {
+		struct USART * port;
+		SerialData serData;
+		
+		CommPacket * firstRX; // beginning of RX queue
+		CommPacket * lastRX; // end of RX queue
+		unsigned int rx_pkts_queued;
+		
+		void (*ReceivePacketComplete)(CommInterface * inf); // callback when a packet is rx'd and available for reading
+		void (*TransmitPacketComplete)(CommInterface * inf); // callback when a packet is rx'd and available for reading
+		
+		CommPacket rcvdPacket;
+		unsigned char rcvdData[20];
+		volatile char hasRcvdPacket;
+		
+		volatile unsigned char errorCount[7];
 };
 
 
