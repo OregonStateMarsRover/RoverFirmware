@@ -31,39 +31,47 @@
 
 #include "Encoders.h"
 void encoders_init() {
-	/*** initialize min and max for actuator encoder ***/
-	/*** Initialize Quadrature Decoder for Actuator encoder***/
+	/* Setup procedure for Quadratuer encoding
+	 * Described on page 51 of the XMEGA D4 Manual
+	 */
+	//Choose two successive pins on a port as QDEC phase input pins.
+	//We are using pins 6 and 7 on PORTC.
 	
-	QDEC_Total_Setup(&PORTC,                    //PORT_t * qPort
-	                 6,                         //uint8_t qPin
-	                 false,                     //bool invIO
-	                 0,                         //uint8_t qEvMux
-	                 EVSYS_CHMUX_PORTC_PIN6_gc, //EVSYS_CHMUX_t qPinInput
-	                 false,                     //bool useIndex
-	                 EVSYS_QDIRM_00_gc,         //EVSYS_QDIRM_t qIndexState
-	                 &TCC0,                     //TC0_t * qTimer
-	                 TC_EVSEL_CH0_gc,           //TC_EVSEL_t qEventChannel
-	                 ACTUATOR_QUADRATURE_LINECOUNT);   //uint8_t lineCount
-	
-	/*** Initialize Counter for Drive encoder***/
+	//Set them as inputs.
+	PORTC.DIRCLR = 0xC0;
 
-	// I think the quadrature encoder is TC0 only?
-	//QDEC_TC_Dec_Setup( &TCC1, TC_EVSEL_CH1_gc, DRIVE_ENCODER_LINECOUNT );
-	
-	/*
-	PORTC.DIRCLR = PIN4_bm;				  //set PC4/Pin 14 to input
-	PORTC.PIN4CTRL |= PORT_ISC_RISING_gc;  //set PC4/Pin 14 to trigger events on rising edges
-	
-	EVSYS.CH2MUX = EVSYS_CHMUX_PORTC_PIN4_gc;  //set PC4/Pin 14 to input for event channel 2
-	
-	TC1_t *motor_counter = &TCC1;
-	TC1_ConfigClockSource( motor_counter, TC_CLKSEL_EVCH2_gc );  //set TCC1 to count events on channel 2
-	*/
+	// Set the pin configuration for both to low-level sense
+	PORTC.PIN6CTRL = 0x01; // sense rising edge
+	PORTC.PIN7CTRL = 0x01; // sense rising edge
+
+	// Set the first pin as a multiplexer for the event channel.
+	//EVSYS.CH0MUX = 0x66;
+	EVSYS.CH0MUX = 0x00;	// manual events only
+
+	// Enable quadrature decoding and digital filtering on the event channel.
+	//EVSYS.CH0CTRL = 0x0F; // eight-sample filter
+	EVSYS.CH0CTRL = 0x08; // digital filtering off
+
+	// Set the quadrature decoding as the event action for a timer/counter
+	// Also, select the event channel as the event source for the timer/counter
+	//TCC1.CTRLD = 0x68;
+	TCC1.CTRLD = 0x48;// use up/down instead of QDEC
+
+	// Enable the timer/counter w/out clock prescaling
+	//TCC1.CTRLA = 0x08;	// set clock to event channel
+	TCC1.CTRLA = 0x01;	// set clock to no prescaling
+
+
+	// Set up LEDs for diagnostics
+	//.CLKEVOUT = 0xA0;	// output event channel 0 on pin4 of PORTD
+
+
+	/* Period measurement for the magnetic encoder to come later */
 }
 
 int16_t get_turn()
 {
-	return TCC0.CNT;
+	return TCC1.CNTL;
 }
 
 /*! \brief This function return the direction of the counter/QDEC.

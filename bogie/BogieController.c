@@ -11,6 +11,8 @@
 
 void init(void)
 {
+	set_clock();
+
 	USART_InitPortStructs();
 	
 	/***set I/O port directions***/
@@ -51,7 +53,6 @@ int main(void)
 
 	int8_t i = 0;
 	int8_t inc = 1;
-	uint8_t flash_mode;
 
 	char msg[20];
 	uint8_t msg_len;
@@ -62,9 +63,13 @@ int main(void)
 		msg_len = snprintf( msg, 20, "%d, ", get_turn() );
 		if( msg_len > 20 ) msg_len = 20;
 		USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+
+
+		// Manually increment the counter
+		EVSYS.STROBE = 0xFF;
 			
 		actuator_set( i );
-		_delay_ms( 40 );
+		_delay_ms( 1000 );
 
 		if( i == 127 ) {
 			inc = -1;
@@ -72,31 +77,6 @@ int main(void)
 			inc = 1;
 		}
 		i += inc;
-
-
-		/* Flash the LEDs so we know what should be happening.
-		 * ON means the motor is currently GOING that direction.
-		 * BLINK means the motor is CHANGING TOWARDS that direction.
-		 */
-		flash_mode = (i & 0x80) | (inc & 0x01);
-		switch( flash_mode ) {
-				case 0x01:
-						PORTD.OUTTGL = GREEN;
-						PORTD.OUTCLR = RED;
-						break;
-				case 0x00:
-						PORTD.OUTSET = GREEN;
-						PORTD.OUTTGL = RED;
-						break;
-				case 0x80:
-						PORTD.OUTCLR = GREEN;
-						PORTD.OUTTGL = RED;
-						break;
-				case 0x81:
-						PORTD.OUTTGL = GREEN;
-						PORTD.OUTSET = RED;
-						break;
-		}
 	}
 	return 0;
 }

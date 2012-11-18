@@ -12,9 +12,9 @@
 #include "qdec_driver.h"
 #include "TC_driver.h"
 
-#define ACTUATOR_QUADRATURE_LINECOUNT 360
+#define ACTUATOR_QUADRATURE_LINECOUNT 360U
 
-#define DRIVE_ENCODER_LINECOUNT 1
+#define DRIVE_ENCODER_LINECOUNT 1U
 
 int16_t get_speed( void );
 
