@@ -19,18 +19,25 @@
 #define RAMP_RATE_CMD 16 // persistant
 #define DEADBAND_CMD 17	 // persistant
 
-uint8_t desired_speed = 0;
-uint8_t desired_angle = 0;
-
-struct USART *port;
+struct USART *saber_port;
 
 void sabertooth_init(struct USART *p)
 {
-	port = p;
+	/* The datasheet says the first byte transmitted must be 170,
+	 * and the Sabertooth will automatically detect the baud rate.
+	 * Maybe this will fix the issue of the timeout not being
+	 * recognized the first time the device gains power.
+	 */
+	USART_WriteByte(saber_port, 170 );
+
+
+	saber_port = p;
 	uint8_t timeout = 1; //1 * 100ms = 100ms
 
 	send_command(TIMEOUT_CMD, timeout);
 	
+
+
 	/* We could also set the min and max voltage.
 	 * However, I think we want to always keep it in regenerative mode,
 	 * instead of doing a hard brake (and absorbing the energy
@@ -49,10 +56,10 @@ void sabertooth_init(struct USART *p)
 void send_command(uint8_t opcode, uint8_t data)
 {
 	uint8_t address = SABERTOOTH_ADDRESS;
-	USART_WriteByte(port, address);
-	USART_WriteByte(port, opcode);
-	USART_WriteByte(port, data);
-	USART_WriteByte(port, (address + opcode + data) & 0x7F);
+	USART_WriteByte(saber_port, address);
+	USART_WriteByte(saber_port, opcode);
+	USART_WriteByte(saber_port, data);
+	USART_WriteByte(saber_port, (address + opcode + data) & 0x7F);
 }
 
 void motor_set(int8_t speed, uint8_t forward_cmd, uint8_t reverse_cmd)

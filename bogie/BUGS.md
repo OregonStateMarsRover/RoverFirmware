@@ -5,7 +5,6 @@ CURRENT BUGS:
 --------------------
 * The Sabertooth needs some time for initialization before it is ready to
 take configuration.  (In this case, the timeout)
-* Packet handler has checksum errors if data contains escaped byte
 
 TO BE TESTED:
 -------------------
@@ -36,6 +35,7 @@ semicolons in them.  Also, the LEDs are on when pulled low, not high.
 
 * Periphrial clock is too slow for 115.2 kbaud uart.  This was fixed by using the external crystal and increasing the clock speed to 16Mhz.  This also increased the accuracy of the UART, so the baud rate settings are more reliable (and don't need to be adjusted for each individual board).
 
+* Packet handler has checksum errors if data contains escaped byte.  Fixed this by comparing to the python code in RoverInterfface.  Be aware that this implementation is different from the Taj protocol, although it may appear very similar at first.
 
 CONFIRMED WORKING:
 -------------------------

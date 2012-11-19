@@ -38,7 +38,7 @@ void init(void)
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
 	// Return error over RS485
-	bogie.packet.ReceiveDataError = packet_error;
+	//bogie.packet.ReceiveDataError = packet_error;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
@@ -104,25 +104,24 @@ int main(void)
 
 	init();
 
-	USART_Write( &(bogie.bb), (uint8_t *)"Welcome!\r\n", 10 );
 
 	while(1) {
 
 		drive_set( bogie_drive );
-		actuator_set( bogie_turn );
+		//actuator_set( bogie_turn );
 		RingBuffer * buffer = &(bogie.bb.rx_buffer);
 
 		if( RingBufferBytesUsed( buffer ) ) {
 			PORTD.OUTTGL = GREEN;
 			uint8_t new_data = RingBufferGetByte( buffer );
-			USART_WriteByte( &bogie.bb, new_data );
 			ProcessDataChar( &(bogie.packet), new_data );
 		}
 
 
-		_delay_ms( 50 );
+		_delay_ms( 1 );
 	}
 
 
 	return 0;
 }
+
