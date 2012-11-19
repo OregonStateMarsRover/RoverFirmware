@@ -5,6 +5,8 @@
 #include "BogieController.h"
 #include <string.h>
 
+#define BOGIE_ADDRESS 1 // Address of this unique bogie controller
+
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
 #define RED 0x20	// red LED on port D
@@ -54,9 +56,11 @@ void init(void)
  * as the serial callback.
  */
 void handle_packet( SerialData * s ) {
-	bogie_drive = s->receive_data[0];
-	bogie_turn = s->receive_data[1];
-	PORTD.OUTTGL = 0x20;	// toggle red LED
+	if( s->receive_address == BOGIE_ADDRESS ) {
+		bogie_drive = s->receive_data[0];
+		bogie_turn = s->receive_data[1];
+		PORTD.OUTTGL = 0x20;	// toggle red LED
+	}
 }
 
 
