@@ -5,7 +5,7 @@
 #include "BogieController.h"
 #include <string.h>
 
-#define BOGIE_ADDRESS 6 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 5 // Address of this unique bogie controller
 
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
@@ -15,6 +15,10 @@
  * If they are low, that means it is okay */
 #define LIM0 0x04	// limit 0 on port B
 #define LIM1 0x08	// limit 1 on port B
+
+
+#define ENCOA 0x10	// wheel encoder on PORT C
+#define ENCOB 0x20	// wheel encoder on PORT C
 
 
 void init(void)
@@ -113,19 +117,39 @@ int main(void)
 
 		drive_set( bogie_drive );
 		//actuator_set( bogie_turn );
+
+
+		/* This actually REDUCES delay between when the message is received and the
+		 * motor controller is updated, because it prevents the buffer from being filled
+		 * with redundant data (since speed is set every time this loop runs).
+		 */
+		_delay_ms( 5 );
 		RingBuffer * buffer = &(bogie.bb.rx_buffer);
 
+
+
 		if( RingBufferBytesUsed( buffer ) ) {
-			PORTD.OUTTGL = GREEN;
+			//PORTD.OUTTGL = GREEN;
 			uint8_t new_data = RingBufferGetByte( buffer );
 			ProcessDataChar( &(bogie.packet), new_data );
 		}
 
 
-		_delay_ms( 1 );
+		/* Test encoders.
+		 * Remember that the LEDs are low-enabled
+		 */
+		if( PORTC.IN & ENCOB ) {
+			PORTD.OUTCLR = RED;
+		} else {
+			PORTD.OUTSET = RED;
+		}
+
+		if( PORTC.IN & ENCOA ) {
+			PORTD.OUTCLR = GREEN;
+		} else {
+			PORTD.OUTSET = GREEN;
+		}
+
 	}
-
-
 	return 0;
 }
-
