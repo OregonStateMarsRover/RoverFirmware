@@ -26,4 +26,8 @@ uint16_t get_actuator_pos( void );
 
 void encoders_init( void );
 
+void wheel_enc_init( void );
+
+int16_t wheel_speed( void );
+
 #endif

@@ -4,6 +4,7 @@
 
 #include "BogieController.h"
 #include <string.h>
+#include <stdio.h>
 
 #define BOGIE_ADDRESS 5 // Address of this unique bogie controller
 
@@ -34,9 +35,8 @@ void init(void)
 	PORTD.DIR = 0b00111110;	//all outputs; rest are unused
 
 	/***Motor Driver USART init***/
-		
-	
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
+
 	/***Mainboard USART init***/
 	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 10, true, false);
 	
@@ -49,6 +49,7 @@ void init(void)
 	/*** Initialize Sabertooth Motor Driver ***/
 	
 	sabertooth_init(&bogie.motor);
+	encoders_init();
 	
 	
 	sei();
@@ -111,6 +112,8 @@ int main(void)
 {
 
 	init();
+	char msg[50];
+	unsigned short len = 0;
 
 
 	while(1) {
@@ -123,8 +126,13 @@ int main(void)
 		 * motor controller is updated, because it prevents the buffer from being filled
 		 * with redundant data (since speed is set every time this loop runs).
 		 */
-		_delay_ms( 5 );
+		_delay_ms( 40 );
 		RingBuffer * buffer = &(bogie.bb.rx_buffer);
+
+
+		snprintf(msg, 50, "Current speed is %d.\r\n", wheel_speed() );
+		len = strlen(msg);
+		USART_Write( &bogie.bb, (uint8_t *)msg, len );
 
 
 

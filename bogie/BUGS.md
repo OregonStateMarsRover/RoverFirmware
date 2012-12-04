@@ -9,7 +9,7 @@ TO BE TESTED:
 -------------------
 
 * Optical encoder ( position )
-* Magnetic encoder ( speed )
+* Magnetic encoder ( speed ) - just made it print back speed over RS485
 * PID
 
 

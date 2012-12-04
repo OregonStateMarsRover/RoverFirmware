@@ -10,6 +10,7 @@
 #include "USART.h"
 #include "Sabertooth.h"
 #include "SerialProtocol.h"
+#include "Encoders.h"
 
 struct BogieControllerData {
 	struct USART motor;
