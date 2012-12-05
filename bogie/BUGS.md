@@ -4,12 +4,13 @@ Bug file
 CURRENT BUGS:
 --------------------
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
+* Can't tell direction of magnetic encoder
+* Can't tell when magnetic encoder is stopped
 
 TO BE TESTED:
 -------------------
 
 * Optical encoder ( position )
-* Magnetic encoder ( speed ) - just made it print back speed over RS485
 * PID
 
 

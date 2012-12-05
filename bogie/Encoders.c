@@ -32,8 +32,8 @@ void encoders_init() {
 
 void wheel_enc_init( void ) {
 	/* Setup the event channel for channel A of the encoder */
-	PORTC.DIRCLR = PIN4_bm;				  //set PC4/Pin 14 to input
-	PORTC.PIN4CTRL |= PORT_ISC_RISING_gc;  //set PC4/Pin 14 to trigger events on rising edges
+	PORTC.DIRCLR = PIN4_bm;				  //set PC5 to input
+	PORTC.PIN4CTRL |= PORT_ISC_RISING_gc;  //set PC5 to trigger events on rising edges
 	
 	EVSYS.CH2MUX = EVSYS_CHMUX_PORTC_PIN4_gc;  //set PC4/Pin 14 to input for event channel 2
 
@@ -54,8 +54,8 @@ void wheel_enc_init( void ) {
 	 * clock rate accordingly (if necessary).
 	 */
 
-	/* Enable CCA and set timer for frequency measurement */
-	TCC1.CTRLB = 0x11;	
+	/* Enable Capture register A */ 
+	TCC1.CTRLB = 0x10;	
 
 	/* Set timer to use event channel 2 for frequency measurement */
 	TCC1.CTRLD = 0xAA;	// FRQ mode, no delay, event channel 2
@@ -76,7 +76,6 @@ uint16_t get_actuator_pos()
 int16_t wheel_speed() {
 	// Doesn't account for timer clock speed yet
 	uint16_t speed = 0xFFFF / TCC1.CCA;
-	speed = speed / 2;
 	return speed;
 }
 
