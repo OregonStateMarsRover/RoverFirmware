@@ -14,6 +14,10 @@
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 2U
 
+
+// global variables
+volatile int8_t measured_wheel_direction;
+
 //drive encoder functions
 
 uint16_t get_drive_speed( void );

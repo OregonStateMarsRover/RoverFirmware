@@ -66,6 +66,10 @@ void wheel_enc_init( void ) {
 	 */
 	TCC1.CTRLA = 0x07;
 
+
+	// Enable CCA interrupt so we can tell direction.
+	TCC1.INTCTRLB = 0x03;
+	PMIC.CTRL |= 0x04;	// enable high-level interrupts
 }
 
 uint16_t get_actuator_pos()
@@ -76,16 +80,35 @@ uint16_t get_actuator_pos()
 int16_t wheel_speed() {
 	int16_t speed;
 	/* If encoder has moved since we last checked */
-	if( TCC1.INTFLAGS & 0x10 ) {
-		TCC1.INTFLAGS |= 0x10;	// clear the CCA interrupt flag
+	if( measured_wheel_direction ) {
+		speed = measured_wheel_direction;
+		measured_wheel_direction = 0;
+		TCC1.INTCTRLB = 0x03;
 		/* Use the period to calculate speed.
 		 * (Doesn't account for timer clock speed yet)
+		 * The typecasting below is just to make extra
+		 * sure we don't end up with a negative value due to
+		 * the counter exceeding 0x7FFF.
 		 */
-		speed = 0xFFFF / TCC1.CCA;
+		speed *= (int16_t)(0x7FFFU / (uint16_t)TCC1.CCA);
 	} else {
-		/* Assume the wheel is stopped */
+		/* Encoder hasn't moved since we last checked.
+		 * assume the wheel is stopped */
 		speed = 0;
 	}
 	return speed;
 }
 
+
+ISR( TCC1_CCA_vect ) {
+	bool fwd = (((PORTC.IN & 0x20) && (PORTC.IN & 0x10)) || 
+			!((~PORTC.IN & 0x20 ) || (~PORTC.IN & 0x10 )));
+	measured_wheel_direction = fwd ? 1 : -1;
+
+	/* Now we disable this interrupt until the next time
+	 * the wheel_speed() function is called.
+	 * This prevents the encoder from taking more processing
+	 * time when it is spinning quickly.
+	 */
+	TCC1.INTCTRLB = 0x00;
+}
