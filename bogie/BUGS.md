@@ -5,7 +5,6 @@ CURRENT BUGS:
 --------------------
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
 * Can't tell direction of magnetic encoder
-* Can't tell when magnetic encoder is stopped
 
 TO BE TESTED:
 -------------------
@@ -25,6 +24,7 @@ TO BE IMPLEMENTED:
 
 FIXED BUGS:
 ---------------------
+* Can't tell when magnetic encoder is stopped.  The overflow flag is never set in Frequency mode, so a workaround is to check the CCA flag to see if the encoder has moved  since we last checked.  This works for speeds that arent' ridiculously slow.
 
 * System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.  This was fixed by adjusting the baud rate.  However, the system clock speed may have to be adjusted in order for the beaglebone communication to work properly.  (Note that only the setting for 9600 baud was adjusted.  The others are probably still wrong)
 

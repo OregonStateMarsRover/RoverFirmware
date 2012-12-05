@@ -74,8 +74,18 @@ uint16_t get_actuator_pos()
 }
 
 int16_t wheel_speed() {
-	// Doesn't account for timer clock speed yet
-	uint16_t speed = 0xFFFF / TCC1.CCA;
+	int16_t speed;
+	/* If encoder has moved since we last checked */
+	if( TCC1.INTFLAGS & 0x10 ) {
+		TCC1.INTFLAGS |= 0x10;	// clear the CCA interrupt flag
+		/* Use the period to calculate speed.
+		 * (Doesn't account for timer clock speed yet)
+		 */
+		speed = 0xFFFF / TCC1.CCA;
+	} else {
+		/* Assume the wheel is stopped */
+		speed = 0;
+	}
 	return speed;
 }
 

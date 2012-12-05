@@ -142,22 +142,6 @@ int main(void)
 			ProcessDataChar( &(bogie.packet), new_data );
 		}
 
-
-		/* Test encoders.
-		 * Remember that the LEDs are low-enabled
-		 */
-		if( PORTC.IN & ENCOB ) {
-			PORTD.OUTCLR = RED;
-		} else {
-			PORTD.OUTSET = RED;
-		}
-
-		if( PORTC.IN & ENCOA ) {
-			PORTD.OUTCLR = GREEN;
-		} else {
-			PORTD.OUTSET = GREEN;
-		}
-
 	}
 	return 0;
 }
