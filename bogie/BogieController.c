@@ -130,9 +130,10 @@ int main(void)
 		RingBuffer * buffer = &(bogie.bb.rx_buffer);
 
 
-		sprintf(msg, "Current speed is %d.\r\n", wheel_speed() );
+		sprintf(msg, "Current speed is %d\tat position %x.\r\n", wheel_speed(), wheel_encoder_position );
 		len = strlen(msg);
 		USART_Write( &bogie.bb, (uint8_t *)msg, len );
+
 
 
 

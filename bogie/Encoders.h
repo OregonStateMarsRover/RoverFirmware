@@ -17,6 +17,7 @@
 
 // global variables
 volatile int8_t measured_wheel_direction;
+volatile uint8_t wheel_encoder_position;
 
 //drive encoder functions
 

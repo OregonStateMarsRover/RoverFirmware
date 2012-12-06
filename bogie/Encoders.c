@@ -36,6 +36,7 @@ void wheel_enc_init( void ) {
 	PORTC.PIN4CTRL |= PORT_ISC_RISING_gc;  //set PC5 to trigger events on rising edges
 	
 	EVSYS.CH2MUX = EVSYS_CHMUX_PORTC_PIN4_gc;  //set PC4/Pin 14 to input for event channel 2
+	EVSYS.CH2CTRL = 0x03;	// set digital filtering for event
 
 	/* For now, ignore direction, and just calculate speed.
 	 * We want to reset the counter every time we receive a pulse.
@@ -78,12 +79,12 @@ uint16_t get_actuator_pos()
 }
 
 int16_t wheel_speed() {
-	int16_t speed;
+	int16_t speed = measured_wheel_direction;
 	/* If encoder has moved since we last checked */
-	if( measured_wheel_direction ) {
-		speed = measured_wheel_direction;
+	if( speed ) {
 		measured_wheel_direction = 0;
 		TCC1.INTCTRLB = 0x03;
+
 		/* Use the period to calculate speed.
 		 * (Doesn't account for timer clock speed yet)
 		 * The typecasting below is just to make extra
@@ -100,10 +101,14 @@ int16_t wheel_speed() {
 }
 
 
+/* Currently this is triggering on the down AND up edge.
+ * So, the direction logic is made to deal with both cases.
+ */
 ISR( TCC1_CCA_vect ) {
-	bool fwd = (((PORTC.IN & 0x20) && (PORTC.IN & 0x10)) || 
-			!((~PORTC.IN & 0x20 ) || (~PORTC.IN & 0x10 )));
-	measured_wheel_direction = fwd ? 1 : -1;
+	wheel_encoder_position = PORTC.IN & 0x30;
+	bool fwd = (!(wheel_encoder_position & 0x20) != !(wheel_encoder_position & 0x10));
+	//measured_wheel_direction = fwd ? 1 : -1;
+	measured_wheel_direction = 1;
 
 	/* Now we disable this interrupt until the next time
 	 * the wheel_speed() function is called.
@@ -111,4 +116,8 @@ ISR( TCC1_CCA_vect ) {
 	 * time when it is spinning quickly.
 	 */
 	TCC1.INTCTRLB = 0x00;
+
+	PORTD.OUTCLR = (wheel_encoder_position & 0x30 );
+	PORTD.OUTSET = (~wheel_encoder_position & 0x30 );
+
 }
