@@ -6,6 +6,7 @@ CURRENT BUGS:
 * The Sabertooth needs some time for initialization before it is ready to
 take configuration.  (In this case, the timeout)
 * Packet handler has checksum errors if data contains escaped byte
+* Packet building for sending over the serial protocol needs to be fixed
 
 TO BE TESTED:
 -------------------
