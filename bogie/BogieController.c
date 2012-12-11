@@ -119,10 +119,9 @@ int main(void)
 			PORTD.OUTTGL = GREEN;
 			uint8_t new_data = RingBufferGetByte( buffer );
 			ProcessDataChar( &(bogie.packet), new_data );
+		} else {
+			_delay_ms( 10 );
 		}
-
-
-		_delay_ms( 1 );
 	}
 
 
