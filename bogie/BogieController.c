@@ -48,10 +48,10 @@ void init(void)
  * as the serial callback.
  */
 void handle_packet( SerialData * s ) {
-	if( s->receive_address == BOGIE_ADDRESS ) {
-		bogie_drive = s->receive_data[0];
-		bogie_turn = s->receive_data[1];
-		PORTD.OUTTGL = 0x20;	// toggle red LED
+	if( s->receive_address == BOGIE_ADDRESS 
+			&& s->receive_length >= 3 ) {
+		bogie.drive = s->receive_data[0];
+		bogie.turn = s->receive_data[1];
 	}
 }
 
@@ -101,35 +101,19 @@ int main(void)
 	init();
 	char msg[50];
 	unsigned short len = 0;
+	
+	RingBuffer * buffer = &(bogie.bb.rx_buffer);
+	uint8_t new_data;
 
 
 	while(1) {
-
-		drive_set( bogie_drive );
-		//actuator_set( bogie_turn );
-
-
-		/* This actually REDUCES delay between when the message is received and the
-		 * motor controller is updated, because it prevents the buffer from being filled
-		 * with redundant data (since speed is set every time this loop runs).
-		 */
-		_delay_ms( 40 );
-		RingBuffer * buffer = &(bogie.bb.rx_buffer);
-
-
-		sprintf(msg, "Current speed is %d\tat position %x.\r\n", wheel_speed(), wheel_encoder_position );
-		len = strlen(msg);
-		USART_Write( &bogie.bb, (uint8_t *)msg, len );
-
-
-
-
 		if( RingBufferBytesUsed( buffer ) ) {
 			//PORTD.OUTTGL = GREEN;
-			uint8_t new_data = RingBufferGetByte( buffer );
+			new_data = RingBufferGetByte( buffer );
 			ProcessDataChar( &(bogie.packet), new_data );
+		} else {
+			_delay_ms( 3 );
 		}
-
 	}
 	return 0;
 }

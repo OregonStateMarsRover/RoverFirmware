@@ -31,6 +31,8 @@
 struct BogieControllerData {
 	struct USART motor;
 	struct USART bb;
+	signed char drive;
+	signed char turn;
 	
 	SerialData packet;
 };
@@ -39,5 +41,6 @@ struct BogieControllerData bogie;
 
 // Used for setting the system clock to 16Mhz
 void set_clock( void );
+
 
 #endif
