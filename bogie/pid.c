@@ -13,14 +13,12 @@
  */
 
 #include "pid.h"
-
-#define SPEED_MULTIPLIER (int16_t)0x20
-
-
+#include "stdio.h"
+#include "string.h"
 
 /* Setup the realtime clock.
  * Use a period in miliseconds.
- * Make overflow a medium-level interrupt
+ * Make overflow a low-level interrupt
  */
 void setup_rtc( uint16_t period ) {
 	/* Enable the ULP clock */
@@ -29,11 +27,11 @@ void setup_rtc( uint16_t period ) {
 	/* Setup the RTC */
 	RTC.PER = period - 1;
 	RTC.CNT = 0;
-	RTC.INTCTRL = 0x02;	// medium-level interrupt
+	RTC.INTCTRL = 0x01;	// low-level interrupt
 	RTC.CTRL = 1;	// 1 ms resolution
 
-	/* Enable medium-level interrupts */
-	PMIC.CTRL |= 0x02;
+	/* Enable low-level interrupts with round-robin */
+	PMIC.CTRL |= 0x81;
 	PORTD.OUTSET = 0x10;	// enable green status LED
 
 }
@@ -49,24 +47,60 @@ void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t 
 	settings->dt = dt;
 }
 
-/* This has none of the safeties or error checking
- * that I would expect a good PID algorithm to have,
- * but this is just for simple testing right now.
- */
 void pid_speed_controller( struct pid * val ) {
 	int16_t output = 0;
 	output = (val->setpoint - val->pv) * val->p;
-	output /= val->dt;
-	val->output += output;
+
+	/* Ramp is basically our ceiling of our proportional
+	 * gain, so it acts smoothely when there's a long way
+	 * to go, but will get there quickly when it's close
+	 */
+	if( output > val->ramp ) output = val->ramp;
+	else if( output < -val->ramp) output = -val->ramp;
+
+	// Account for time
+	output *= val->dt;
+
+	/* catch overflows */
+	int16_t newout = output + val->output;
+	if( output > 0 && val->output > 0 && newout < 0 ) {
+		newout = INT16_MAX;
+	} else if( output < 0 && val->output < 0 && newout > 0 ) {
+		newout = INT16_MIN;
+	}
+	val->output = newout;
+
+
 }
 
 
+char pid_msg[60];
+unsigned short pmsg_len;
+
+void print_pid( struct pid * val ) {
+	snprintf( pid_msg, 60, "setpoint = %d, pv = %d, out = %d\r\n",
+			val->setpoint, val->pv, val->output );
+	pmsg_len = strlen( pid_msg);
+	USART_Write( &bogie.bb, (uint8_t *)pid_msg, pmsg_len );
+}
 
 
 ISR(RTC_OVF_vect) {
 	// Do PID stuff
-	speed_pid.setpoint = bogie.drive * SPEED_MULTIPLIER;
-	speed_pid.pv = wheel_speed();
+	speed_pid.setpoint = bogie.drive;
+	/* Since wheel speed has no direction yet, we have to
+	 * implement it ourselves.
+	 */
+	speed_pid.pv = ((speed_pid.output > 0) ? 
+		wheel_speed() : -wheel_speed());
+
 	pid_speed_controller( &speed_pid );
-	drive_set( speed_pid.output / SPEED_MULTIPLIER );
+
+	/* We scale down the set because the PID needs a higher resolution
+	 * for it to accumulate smoothely. */
+	drive_set( speed_pid.output >> 8);
+
+//	PORTD.OUTTGL = GREEN;
+
+//	print_pid( &speed_pid );
 }

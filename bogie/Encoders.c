@@ -8,6 +8,7 @@
 #include "Encoders.h"
 
 
+
 void encoders_init() {
 	/*** initialize min and max for actuator encoder ***/
 	/*** Initialize Quadrature Decoder for Actuator encoder***/
@@ -91,23 +92,23 @@ int16_t wheel_speed() {
 		 * sure we don't end up with a negative value due to
 		 * the counter exceeding 0x7FFF.
 		 */
-		speed *= (int16_t)(0x7FFFU / (uint16_t)TCC1.CCA);
-	} else {
+		speed *= (int16_t)(MAGNETIC_ENCODER_SCALER / 
+				(uint16_t)TCC1.CCA);
+	//} else {
 		/* Encoder hasn't moved since we last checked.
 		 * assume the wheel is stopped */
-		speed = 0;
+	//	speed = 0;
 	}
 	return speed;
 }
 
 
-/* Currently this is triggering on the down AND up edge.
- * So, the direction logic is made to deal with both cases.
- */
 ISR( TCC1_CCA_vect ) {
+	/* Actually, it's too buggy to use right now
 	wheel_encoder_position = PORTC.IN & 0x30;
 	bool fwd = (!(wheel_encoder_position & 0x20) != !(wheel_encoder_position & 0x10));
-	//measured_wheel_direction = fwd ? 1 : -1;
+	measured_wheel_direction = fwd ? 1 : -1;
+	*/
 	measured_wheel_direction = 1;
 
 	/* Now we disable this interrupt until the next time
@@ -116,8 +117,5 @@ ISR( TCC1_CCA_vect ) {
 	 * time when it is spinning quickly.
 	 */
 	TCC1.INTCTRLB = 0x00;
-
-	PORTD.OUTCLR = (wheel_encoder_position & 0x30 );
-	PORTD.OUTSET = (~wheel_encoder_position & 0x30 );
 
 }

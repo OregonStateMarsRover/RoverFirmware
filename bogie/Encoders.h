@@ -13,6 +13,7 @@
 #include "TC_driver.h"
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 2U
+#define MAGNETIC_ENCODER_SCALER 5000
 
 
 // global variables

@@ -6,7 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define BOGIE_ADDRESS 5 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 7 // Address of this unique bogie controller
 
 
 void init(void)
@@ -40,7 +40,7 @@ void init(void)
 
 	setup_rtc( 10 );
 	/* void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt) */
-	pid_setup( &speed_pid, 8, 0, 0, 100, 10 );
+	pid_setup( &speed_pid, 2, 0, 0, 500, 10 );
 
 	
 	
@@ -55,7 +55,7 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS 
-			&& s->receive_length >= 3 ) {
+			/*&& s->receive_length >= 3*/ ) {
 		bogie.drive = s->receive_data[0];
 		bogie.turn = s->receive_data[1];
 	}
@@ -105,8 +105,10 @@ int main(void)
 {
 
 	init();
+	/*
 	char msg[50];
 	unsigned short len = 0;
+	*/
 	
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
 	uint8_t new_data;
