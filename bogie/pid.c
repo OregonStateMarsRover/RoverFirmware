@@ -16,6 +16,8 @@
 #include "stdio.h"
 #include "string.h"
 
+#define GAIN_SCALAR 10
+
 /* Setup the realtime clock.
  * Use a period in miliseconds.
  * Make overflow a low-level interrupt
@@ -50,6 +52,7 @@ void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t 
 void pid_speed_controller( struct pid * val ) {
 	int16_t output = 0;
 	output = (val->setpoint - val->pv) * val->p;
+	output /= GAIN_SCALAR;
 
 	/* Ramp is basically our ceiling of our proportional
 	 * gain, so it acts smoothely when there's a long way
