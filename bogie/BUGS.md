@@ -4,6 +4,7 @@ Bug file
 CURRENT BUGS:
 --------------------
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
+* Packet building for sending over the serial protocol needs to be fixed
 
 TO BE TESTED:
 -------------------
@@ -38,7 +39,7 @@ semicolons in them.  Also, the LEDs are on when pulled low, not high.
 * Packet handler has checksum errors if data contains escaped byte.  Fixed this by comparing to the python code in RoverInterfface.  Be aware that this implementation is different from the Taj protocol, although it may appear very similar at first.
 
 * The Sabertooth needs some time for initialization before it is ready to
-take configuration.  (In this case, the timeout)  This was fixed by first writing 1 byte with the decimal value 170 to the Sabertooth.  Apparently this should be the first byte, and the Sabertooth uses it for baud rate calculation.
+take configuration.  (In this case, the timeout)  This was fixed by first writing 1 byte with the decimal value 170 to the Sabertooth.  Apparently this should be the first byte, and the Sabertooth uses it for baud rate calculation.  I'm not sure that this actually fixed the issue, but it appears to happen less often now.
 
 CONFIRMED WORKING:
 -------------------------
