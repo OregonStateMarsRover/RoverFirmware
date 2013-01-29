@@ -41,29 +41,23 @@ void encoders_init() {
 	PORTC.DIRCLR = 0xC0;
 
 	// Set the pin configuration for both to low-level sense
-	PORTC.PIN6CTRL = 0x01; // sense rising edge
-	PORTC.PIN7CTRL = 0x01; // sense rising edge
+	PORTC.PIN6CTRL = 0x00; // sense rising edge
+	PORTC.PIN7CTRL = 0x03; // sense low level
 
 	// Set the first pin as a multiplexer for the event channel.
-	//EVSYS.CH0MUX = 0x66;
-	EVSYS.CH0MUX = 0x00;	// manual events only
+	EVSYS.CH0MUX = 0x60 + 0x08 + 6;	// PORTC, pin 6
+	//EVSYS.CH1MUX = 0x60 + 0x08 + 7;	// PORTC, pin 7
 
 	// Enable quadrature decoding and digital filtering on the event channel.
-	//EVSYS.CH0CTRL = 0x0F; // eight-sample filter
-	EVSYS.CH0CTRL = 0x08; // digital filtering off
+	EVSYS.CH0CTRL = 0x0F; // eight-sample filter
+	//EVSYS.CH1CTRL = 0x07; // eight-sample filter
 
 	// Set the quadrature decoding as the event action for a timer/counter
 	// Also, select the event channel as the event source for the timer/counter
-	//TCC1.CTRLD = 0x68;
-	TCC1.CTRLD = 0x48;// use up/down instead of QDEC
+	TCC1.CTRLD = 0x68; // event channel 0
 
 	// Enable the timer/counter w/out clock prescaling
-	//TCC1.CTRLA = 0x08;	// set clock to event channel
 	TCC1.CTRLA = 0x01;	// set clock to no prescaling
-
-
-	// Set up LEDs for diagnostics
-	//.CLKEVOUT = 0xA0;	// output event channel 0 on pin4 of PORTD
 
 
 	/* Period measurement for the magnetic encoder to come later */
@@ -71,7 +65,7 @@ void encoders_init() {
 
 int16_t get_turn()
 {
-	return TCC1.CNTL;
+	return TCC1.CNT;
 }
 
 /*! \brief This function return the direction of the counter/QDEC.
