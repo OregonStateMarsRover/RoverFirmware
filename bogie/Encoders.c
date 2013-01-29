@@ -41,16 +41,19 @@ void encoders_init() {
 	PORTC.DIRCLR = 0xC0;
 
 	// Set the pin configuration for both to low-level sense
-	PORTC.PIN6CTRL = 0x00; // sense rising edge
+	PORTC.PIN6CTRL = 0x01; // sense rising edge
 	PORTC.PIN7CTRL = 0x03; // sense low level
 
 	// Set the first pin as a multiplexer for the event channel.
-	EVSYS.CH0MUX = 0x60 + 0x08 + 6;	// PORTC, pin 6
-	//EVSYS.CH1MUX = 0x60 + 0x08 + 7;	// PORTC, pin 7
+	//EVSYS.CH0MUX = 0x60 + 0x08 + 6;	// PORTC, pin 6
+	
+	// For now, we're using interrupts to trigger the event
+	PORTC.INT0MASK = 0x40;
+	PORTC.INTCTRL = 0x03;	// high-level interrupt
+	PMIC.CTRL |= 0x04;	// enable high-level interrpts
 
 	// Enable quadrature decoding and digital filtering on the event channel.
 	EVSYS.CH0CTRL = 0x0F; // eight-sample filter
-	//EVSYS.CH1CTRL = 0x07; // eight-sample filter
 
 	// Set the quadrature decoding as the event action for a timer/counter
 	// Also, select the event channel as the event source for the timer/counter
@@ -61,6 +64,12 @@ void encoders_init() {
 
 
 	/* Period measurement for the magnetic encoder to come later */
+}
+
+
+ISR( PORTC_INT0_vect ) {
+	EVSYS.DATA = PORTC.IN >> 7; // set count direction
+	EVSYS.STROBE = 0x01;		// increment/decrement
 }
 
 int16_t get_turn()
