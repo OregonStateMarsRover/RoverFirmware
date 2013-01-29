@@ -140,70 +140,48 @@ int main(void)
 		_delay_ms( 500 );
 	}
 #endif
+	encoders_init();
 
 	USART_Write( &bogie.bb, (uint8_t *)"Encoder test\r\n", 14 );
 
 	int8_t i = 0;
 	int8_t inc = 1;
-	uint8_t flash_mode;
 
 	char msg[20];
 	uint8_t msg_len;
+	TCC1.CNT = 5;	// is this even changing?  Apparently not.
 
 	/* Ramp the drive motor speed up and down,
 	 * to test the motor controllers */
 	while(1) {
-		msg_len = snprintf( msg, 20, "%d, ", get_turn() );
-		if( msg_len > 20 ) msg_len = 20;
-		USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
-			
-		actuator_set( i );
-		_delay_ms( 40 );
+		if( i % 1000 == 0 ) {
+			msg_len = snprintf( msg, 20, "%d, ", get_turn() );
+			if( msg_len > 20 ) msg_len = 20;
+			USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
 
+			actuator_set( 14 );
+		} else {
+			_delay_ms( 1 );
+		}
+		++i;
+
+		// Manually generate events. Bit 0 of data controls direction
+		uint8_t data = PORTC.IN >> 6;
+		/*
+		EVSYS.DATA = data >> 1;
+		EVSYS.STROBE = data & 1;
+		*/
+
+		PORTD.OUT = data << 4;
+
+		/*
 		if( i == 127 ) {
 			inc = -1;
 		} else if( i == -127 ) {
 			inc = 1;
 		}
 		i += inc;
-
-
-		/* Flash the LEDs so we know what should be happening.
-		 * ON means the motor is currently GOING that direction.
-		 * BLINK means the motor is CHANGING TOWARDS that direction.
-		 */
-		flash_mode = (i & 0x80) | (inc & 0x01);
-		switch( flash_mode ) {
-				case 0x01:
-						PORTD.OUTTGL = GREEN;
-						PORTD.OUTCLR = RED;
-						break;
-				case 0x00:
-						PORTD.OUTSET = GREEN;
-						PORTD.OUTTGL = RED;
-						break;
-				case 0x80:
-						PORTD.OUTCLR = GREEN;
-						PORTD.OUTTGL = RED;
-						break;
-				case 0x81:
-						PORTD.OUTTGL = GREEN;
-						PORTD.OUTSET = RED;
-						break;
-		}
-
-
-/*
-		if( RingBufferBytesUsed( buffer ) ) {
-			PORTD.OUTTGL = GREEN;
-			
-			new_byte = RingBufferGetByte( buffer );
-			ProcessDataChar( &(bogie.packet), new_byte );
-		} else {
-			_delay_ms( 10 );
-		}
-*/
+		*/
 	}
-
 	return 0;
 }
