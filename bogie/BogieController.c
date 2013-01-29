@@ -34,8 +34,8 @@ void init(void)
 	PORTD.DIR = 0b00111110;	//all outputs; rest are unused
 
 	/***Motor Driver USART init***/
-		
-	
+
+
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false);
 	/***Mainboard USART init***/
 	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 100, true);
@@ -49,11 +49,12 @@ void init(void)
 #endif
 
 	/*** Initialize Sabertooth Motor Driver ***/
-	
+
 	sabertooth_init(&bogie.motor);
 	PORTD.OUTSET = 0x04;	// enable motor
-	
-	
+
+	encoders_init();
+
 	sei();
 }
 
@@ -116,7 +117,6 @@ void packet_error( SerialData *s, uint8_t errCode ) {
 
 int main(void)
 {
-
 	init();
 
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
@@ -154,34 +154,20 @@ int main(void)
 	/* Ramp the drive motor speed up and down,
 	 * to test the motor controllers */
 	while(1) {
-		if( i % 1000 == 0 ) {
-			msg_len = snprintf( msg, 20, "%d, ", get_turn() );
-			if( msg_len > 20 ) msg_len = 20;
-			USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+		msg_len = snprintf( msg, 20, "%d, ", get_turn() );
+		if( msg_len > 20 ) msg_len = 20;
+		USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
 
-			actuator_set( 14 );
-		} else {
-			_delay_ms( 1 );
-		}
-		++i;
+		actuator_set( i );
 
-		// Manually generate events. Bit 0 of data controls direction
-		uint8_t data = PORTC.IN >> 6;
-		/*
-		EVSYS.DATA = data >> 1;
-		EVSYS.STROBE = data & 1;
-		*/
-
-		PORTD.OUT = data << 4;
-
-		/*
-		if( i == 127 ) {
+		if( i == 50) {
 			inc = -1;
 		} else if( i == -127 ) {
-			inc = 1;
+			inc = 0;
 		}
 		i += inc;
-		*/
+
+		_delay_ms(70);
 	}
 	return 0;
 }
