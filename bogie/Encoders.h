@@ -13,13 +13,23 @@
 #include "TC_driver.h"
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 360U
+#define MAGNETIC_ENCODER_SCALER 2000
 
-#define DRIVE_ENCODER_LINECOUNT 1U
 
-int16_t get_speed( void );
+// global variables
+volatile int8_t measured_wheel_direction;
+volatile uint8_t wheel_encoder_position;
 
-int16_t get_turn( void );
 
 void encoders_init( void );
+
+
+//turn encoder functions
+void turn_enc_init( void );
+int16_t get_turn( void );
+
+//drive encoder functions
+void wheel_enc_init( void );
+int16_t get_speed( void );
 
 #endif

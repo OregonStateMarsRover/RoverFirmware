@@ -3,15 +3,13 @@ Bug file
 
 CURRENT BUGS:
 --------------------
-* The Sabertooth needs some time for initialization before it is ready to
-take configuration.  (In this case, the timeout)
-* Packet handler has checksum errors if data contains escaped byte
+* Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
+* Can't tell direction of magnetic encoder - encoder is too glitchy
 
 TO BE TESTED:
 -------------------
 
 * Optical encoder ( position )
-* Magnetic encoder ( speed )
 * PID
 
 
@@ -19,12 +17,14 @@ TO BE IMPLEMENTED:
 --------------------------
 
 * Current measurement
-* Limit switches and indexing (working on it)
+* Limit switches and indexing
 * Fault detection
+* Watchdog (if it loses communication the BB, it should stop the motors)
 
 
 FIXED BUGS:
 ---------------------
+* Can't tell when magnetic encoder is stopped.  The overflow flag is never set in Frequency mode, so a workaround is to check the CCA flag to see if the encoder has moved  since we last checked.  This works for speeds that arent' ridiculously slow.
 
 * System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.  This was fixed by adjusting the baud rate.  However, the system clock speed may have to be adjusted in order for the beaglebone communication to work properly.  (Note that only the setting for 9600 baud was adjusted.  The others are probably still wrong)
 
@@ -36,6 +36,10 @@ semicolons in them.  Also, the LEDs are on when pulled low, not high.
 
 * Periphrial clock is too slow for 115.2 kbaud uart.  This was fixed by using the external crystal and increasing the clock speed to 16Mhz.  This also increased the accuracy of the UART, so the baud rate settings are more reliable (and don't need to be adjusted for each individual board).
 
+* Packet handler has checksum errors if data contains escaped byte.  Fixed this by comparing to the python code in RoverInterfface.  Be aware that this implementation is different from the Taj protocol, although it may appear very similar at first.
+
+* The Sabertooth needs some time for initialization before it is ready to
+take configuration.  (In this case, the timeout)  This was fixed by first writing 1 byte with the decimal value 170 to the Sabertooth.  Apparently this should be the first byte, and the Sabertooth uses it for baud rate calculation.
 
 CONFIRMED WORKING:
 -------------------------
