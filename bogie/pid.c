@@ -47,6 +47,8 @@ void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t 
 	// no d term currently
 	settings->ramp = ramp;
 	settings->dt = dt;
+	
+	settings->output = 0;
 }
 
 void pid_speed_controller( struct pid * val ) {
@@ -77,6 +79,13 @@ void pid_speed_controller( struct pid * val ) {
 }
 
 
+void pid_turn_controller( struct pid * val ) {
+	/* FIXME */
+	val->output = val->setpoint;
+	
+}
+
+
 char pid_msg[60];
 unsigned short pmsg_len;
 
@@ -91,17 +100,24 @@ void print_pid( struct pid * val ) {
 ISR(RTC_OVF_vect) {
 	// Do PID stuff
 	speed_pid.setpoint = bogie.drive;
+	turn_pid.setpoint = bogie.turn;
 	/* Since wheel speed has no direction yet, we have to
 	 * implement it ourselves.
 	 */
 	speed_pid.pv = ((speed_pid.output > 0) ? 
-		wheel_speed() : -wheel_speed());
+		get_speed() : -get_speed());
+
+	turn_pid.pv = get_turn();
 
 	pid_speed_controller( &speed_pid );
+	pid_turn_controller( &turn_pid );
+
+	print_pid( &speed_pid );
 
 	/* We scale down the set because the PID needs a higher resolution
-	 * for it to accumulate smoothely. */
+	 * for it to accumulate smoothly. */
 	drive_set( speed_pid.output >> 8);
+	actuator_set( turn_pid.output );
 
 //	PORTD.OUTTGL = GREEN;
 

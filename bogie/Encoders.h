@@ -9,8 +9,6 @@
 #define BOGIE_ENCODERS
 
 #include "BogieCommon.h"
-#include "qdec_driver.h"
-#include "TC_driver.h"
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 360U
 #define MAGNETIC_ENCODER_SCALER 2000

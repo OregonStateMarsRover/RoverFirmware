@@ -32,14 +32,14 @@ void init(void)
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
 	// Return error over RS485
-	//bogie.packet.ReceiveDataError = packet_error;
+	bogie.packet.ReceiveDataError = packet_error;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
 	sabertooth_init(&bogie.motor);
 	encoders_init();
 
-	setup_rtc( 10 );
+	setup_rtc( 50 );
 	/* void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt) */
 	pid_setup( &speed_pid, 20, 0, 0, 300, 10 );
 

@@ -25,8 +25,12 @@
 
 void encoders_init() {
 	wheel_enc_init();
-	turn_enc_init();
+	//turn_enc_init();
 }
+
+/******************************************
+ ************ WHEEL ENCODER ***************
+ ******************************************/
 
 void wheel_enc_init( void ) {
 	/* Setup the event channel for channel A of the encoder */
@@ -67,8 +71,8 @@ void wheel_enc_init( void ) {
 
 
 	// Enable CCA interrupt so we can tell direction.
-	TCC1.INTCTRLB = 0x03;
-	PMIC.CTRL |= 0x04;	// enable high-level interrupts
+	TCC1.INTCTRLB = 0x02;
+	PMIC.CTRL |= 0x02;	// enable medium-level interrupts
 }
 
 int16_t get_speed() {
@@ -104,13 +108,19 @@ ISR( TCC1_CCA_vect ) {
 	measured_wheel_direction = 1;
 
 	/* Now we disable this interrupt until the next time
-	 * the wheel_speed() function is called.
+	 * the get_speed() function is called.
 	 * This prevents the encoder from taking more processing
 	 * time when it is spinning quickly.
 	 */
 	TCC1.INTCTRLB = 0x00;
 
 }
+
+
+
+/******************************************
+ ************ TURN ENCODER ****************
+ ******************************************/
 
 void turn_enc_init() {
 	/* Setup procedure for Quadrature encoding
@@ -144,8 +154,6 @@ void turn_enc_init() {
 	// Enable the timer/counter w/out clock prescaling
 	TCC1.CTRLA = 0x01;	// set clock to no prescaling
 
-
-	/* Period measurement for the magnetic encoder to come later */
 }
 
 
@@ -158,11 +166,3 @@ int16_t get_turn()
 {
 	return TCC1.CNT;
 }
-
-/*! \brief This function return the direction of the counter/QDEC.
- *
- * \param qTimer      The timer used for QDEC.
- *
- * \retval CW_DIR     if clockwise/up counting,
- * \retval CCW_DIR    if counter clockwise/down counting.
- */

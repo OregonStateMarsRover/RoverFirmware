@@ -17,11 +17,12 @@ struct pid{
 };
 
 struct pid speed_pid;
+struct pid turn_pid;
 
 void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt);
 
 void pid_speed_controller( struct pid * val );
 
-
+void pid_turn_controller( struct pid * val );
 
 #endif
