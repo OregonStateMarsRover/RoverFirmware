@@ -19,19 +19,27 @@
 #define RAMP_RATE_CMD 16 // persistant
 #define DEADBAND_CMD 17	 // persistant
 
-struct USART *saber_port;
 
-void sabertooth_init(struct USART *p)
+void sabertooth_init( )
 {
+	encoders_init();
+
+	setup_rtc( 10 ); // sets the period (in ms) of the real-time clock interrupt
+
+	/* void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt) */
+	pid_setup( &speed_pid, 20, 0, 0, 300, 10 ); // dt is the RTC period
+	pid_setup( &turn_pid, -125, 0, 0, 1, 10 );
+
+	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
+
 	/* The datasheet says the first byte transmitted must be 170,
 	 * and the Sabertooth will automatically detect the baud rate.
 	 * Maybe this will fix the issue of the timeout not being
 	 * recognized the first time the device gains power.
 	 */
-	USART_WriteByte(saber_port, 170 );
+	USART_WriteByte(&bogie.motor, 170 );
 
 
-	saber_port = p;
 	uint8_t timeout = 1; //1 * 100ms = 100ms
 
 	send_command(TIMEOUT_CMD, timeout);
@@ -56,10 +64,10 @@ void sabertooth_init(struct USART *p)
 void send_command(uint8_t opcode, uint8_t data)
 {
 	uint8_t address = SABERTOOTH_ADDRESS;
-	USART_WriteByte(saber_port, address);
-	USART_WriteByte(saber_port, opcode);
-	USART_WriteByte(saber_port, data);
-	USART_WriteByte(saber_port, (address + opcode + data) & 0x7F);
+	USART_WriteByte(&bogie.motor, address);
+	USART_WriteByte(&bogie.motor, opcode);
+	USART_WriteByte(&bogie.motor, data);
+	USART_WriteByte(&bogie.motor, (address + opcode + data) & 0x7F);
 }
 
 void motor_set(int8_t speed, uint8_t forward_cmd, uint8_t reverse_cmd)

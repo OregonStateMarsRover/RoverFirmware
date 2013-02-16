@@ -3,6 +3,7 @@ Bug file
 
 CURRENT BUGS:
 --------------------
+* Turn motor turns much faster in forward than reverse.
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
 * Can't tell direction of magnetic encoder - encoder is too glitchy
 
@@ -13,7 +14,6 @@ TO BE TESTED:
 TO BE IMPLEMENTED:
 --------------------------
 
-* PID (for turn)
 * Current measurement
 * Limit switches and indexing
 * Fault detection

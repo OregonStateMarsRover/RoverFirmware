@@ -49,6 +49,7 @@ void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t 
 	settings->dt = dt;
 	
 	settings->output = 0;
+	settings->integral = 0;
 }
 
 void pid_speed_controller( struct pid * val ) {
@@ -80,8 +81,27 @@ void pid_speed_controller( struct pid * val ) {
 
 
 void pid_turn_controller( struct pid * val ) {
-	/* FIXME */
-	val->output = val->setpoint;
+
+	int16_t output = (val->setpoint - val->pv);
+	output /= 100;
+	output *= val->dt;
+
+	val->integral += output * val->i;
+	if( val->integral > 100 )
+		val->integral = 100;
+	else if( val->integral < -100 )
+		val->integral = -100;
+
+	output /= 10;
+	output *= val->p;
+	output += val->integral;
+	
+	if( output > 127 )
+		output = 127;
+	else if( output < -127 )
+		output = -127;
+
+	val->output = output;
 	
 }
 
@@ -100,7 +120,7 @@ void print_pid( struct pid * val ) {
 ISR(RTC_OVF_vect) {
 	// Do PID stuff
 	speed_pid.setpoint = bogie.drive;
-	turn_pid.setpoint = bogie.turn;
+	turn_pid.setpoint = bogie.turn * 256;
 	/* Since wheel speed has no direction yet, we have to
 	 * implement it ourselves.
 	 */

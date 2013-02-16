@@ -20,11 +20,7 @@ void init(void)
 	PORTB.DIR = 0x00;
 	PORTC.DIR = 0b00001010;	//only outputs are UART TX
 	PORTD.DIR = 0b00111110;	//all outputs; rest are unused
-
-	/***Motor Driver USART init***/
-		
 	
-	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
 	/***Mainboard USART init***/
 	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 10, true, false);
 	
@@ -34,14 +30,10 @@ void init(void)
 	// Return error over RS485
 	bogie.packet.ReceiveDataError = packet_error;
 
+
 	/*** Initialize Sabertooth Motor Driver ***/
 	
-	sabertooth_init(&bogie.motor);
-	encoders_init();
-
-	setup_rtc( 10 );
-	/* void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt) */
-	pid_setup( &speed_pid, 20, 0, 0, 300, 10 );
+	sabertooth_init();
 
 	
 	
@@ -56,7 +48,8 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS 
-			/*&& s->receive_length >= 3*/ ) {
+			//&& s->receive_length >= 3 
+		) {
 		bogie.drive = s->receive_data[0];
 		bogie.turn = s->receive_data[1];
 	}

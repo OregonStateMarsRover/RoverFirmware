@@ -14,6 +14,7 @@ struct pid{
 	int16_t ramp;
 	int16_t p, i;
 	int16_t setpoint, pv, output;
+	int16_t integral;
 };
 
 struct pid speed_pid;
@@ -24,5 +25,7 @@ void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t 
 void pid_speed_controller( struct pid * val );
 
 void pid_turn_controller( struct pid * val );
+
+void print_pid( struct pid * val );
 
 #endif
