@@ -90,7 +90,7 @@ char pid_msg[60];
 unsigned short pmsg_len;
 
 void print_pid( struct pid * val ) {
-	snprintf( pid_msg, 60, "setpoint = %d, pv = %d, out = %d\r\n",
+	snprintf( pid_msg, 60, "setpoint = %d, \tpv = %d, \tout = %d\r\n",
 			val->setpoint, val->pv, val->output );
 	pmsg_len = strlen( pid_msg);
 	USART_Write( &bogie.bb, (uint8_t *)pid_msg, pmsg_len );
@@ -111,8 +111,6 @@ ISR(RTC_OVF_vect) {
 
 	pid_speed_controller( &speed_pid );
 	pid_turn_controller( &turn_pid );
-
-	print_pid( &speed_pid );
 
 	/* We scale down the set because the PID needs a higher resolution
 	 * for it to accumulate smoothly. */

@@ -39,7 +39,7 @@ void init(void)
 	sabertooth_init(&bogie.motor);
 	encoders_init();
 
-	setup_rtc( 50 );
+	setup_rtc( 10 );
 	/* void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt) */
 	pid_setup( &speed_pid, 20, 0, 0, 300, 10 );
 
@@ -113,16 +113,22 @@ int main(void)
 	
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
 	uint8_t new_data;
+	uint8_t prescaler = 0;
 
 	USART_Write( &(bogie.bb), (uint8_t *)"Welcome!\r\n", 10 );
 
 	while(1) {
+		++prescaler;
+
 		if( RingBufferBytesUsed( buffer ) ) {
 			//PORTD.OUTTGL = GREEN;
 			new_data = RingBufferGetByte( buffer );
 			ProcessDataChar( &(bogie.packet), new_data );
 		} else {
 			_delay_ms( 3 );
+		}
+		if( prescaler % 32  == 0 ) {
+			print_pid( &turn_pid );
 		}
 	}
 

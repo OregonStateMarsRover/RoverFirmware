@@ -11,11 +11,10 @@
 #include "BogieCommon.h"
 
 #define ACTUATOR_QUADRATURE_LINECOUNT 360U
-#define MAGNETIC_ENCODER_SCALER 2000
+#define MAGNETIC_ENCODER_SCALER 2500
 
 
 // global variables
-volatile int8_t measured_wheel_direction;
 volatile uint8_t wheel_encoder_position;
 
 

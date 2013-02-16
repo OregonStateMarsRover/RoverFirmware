@@ -25,7 +25,7 @@
 
 void encoders_init() {
 	wheel_enc_init();
-	//turn_enc_init();
+	turn_enc_init();
 }
 
 /******************************************
@@ -58,29 +58,24 @@ void wheel_enc_init( void ) {
 	 */
 
 	/* Enable Capture register A */ 
-	TCC1.CTRLB = 0x10;	
+	TCC0.CTRLB = 0x10;	
 
 	/* Set timer to use event channel 2 for frequency measurement */
-	TCC1.CTRLD = 0xAA;	// FRQ mode, no delay, event channel 2
+	TCC0.CTRLD = 0xAA;	// FRQ mode, no delay, event channel 2
 
 	/* Set prescaler to 1/1024.
 	 * Based off a 16Mhz system clock, this means we can measure a period as
 	 * long as 4ms, and as short as 64us.
 	 */
-	TCC1.CTRLA = 0x07;
+	TCC0.CTRLA = 0x07;
 
-
-	// Enable CCA interrupt so we can tell direction.
-	TCC1.INTCTRLB = 0x02;
-	PMIC.CTRL |= 0x02;	// enable medium-level interrupts
 }
 
 int16_t get_speed() {
-	int16_t speed = measured_wheel_direction;
+	int16_t speed = 0;
 	/* If encoder has moved since we last checked */
-	if( speed ) {
-		measured_wheel_direction = 0;
-		TCC1.INTCTRLB = 0x03;
+	if( TCC0.INTFLAGS & 0x10 ) {
+		TCC0.INTFLAGS = 0x10;	// clear interrupt flag
 
 		/* Use the period to calculate speed.
 		 * (Doesn't account for timer clock speed yet)
@@ -88,32 +83,14 @@ int16_t get_speed() {
 		 * sure we don't end up with a negative value due to
 		 * the counter exceeding 0x7FFF.
 		 */
-		speed *= (int16_t)(MAGNETIC_ENCODER_SCALER / 
-				(uint16_t)TCC1.CCA);
+		speed = (int16_t)(MAGNETIC_ENCODER_SCALER / 
+				(uint16_t)TCC0.CCA);
 	//} else {
 		/* Encoder hasn't moved since we last checked.
 		 * assume the wheel is stopped */
 	//	speed = 0;
 	}
 	return speed;
-}
-
-
-ISR( TCC1_CCA_vect ) {
-	/* Actually, it's too buggy to use right now
-	wheel_encoder_position = PORTC.IN & 0x30;
-	bool fwd = (!(wheel_encoder_position & 0x20) != !(wheel_encoder_position & 0x10));
-	measured_wheel_direction = fwd ? 1 : -1;
-	*/
-	measured_wheel_direction = 1;
-
-	/* Now we disable this interrupt until the next time
-	 * the get_speed() function is called.
-	 * This prevents the encoder from taking more processing
-	 * time when it is spinning quickly.
-	 */
-	TCC1.INTCTRLB = 0x00;
-
 }
 
 
@@ -140,8 +117,8 @@ void turn_enc_init() {
 	//EVSYS.CH0MUX = 0x60 + 0x08 + 6;	// PORTC, pin 6
 	
 	// For now, we're using interrupts to trigger the event
-	PORTC.INT0MASK = 0x40;
-	PORTC.INTCTRL = 0x03;	// high-level interrupt
+	PORTC.INT1MASK = 0x40;
+	PORTC.INTCTRL = (PORTC.INTCTRL & 0xF3) | 0x0C;	// high-level interrupt
 	PMIC.CTRL |= 0x04;	// enable high-level interrpts
 
 	// Enable quadrature decoding and digital filtering on the event channel.
@@ -157,7 +134,7 @@ void turn_enc_init() {
 }
 
 
-ISR( PORTC_INT0_vect ) {
+ISR( PORTC_INT1_vect ) {
 	EVSYS.DATA = PORTC.IN >> 7; // set count direction
 	EVSYS.STROBE = 0x01;		// increment/decrement
 }

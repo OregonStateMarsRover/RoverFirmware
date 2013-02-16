@@ -9,13 +9,11 @@ CURRENT BUGS:
 TO BE TESTED:
 -------------------
 
-* Optical encoder ( position )
-* PID
-
 
 TO BE IMPLEMENTED:
 --------------------------
 
+* PID (for turn)
 * Current measurement
 * Limit switches and indexing
 * Fault detection
@@ -24,6 +22,8 @@ TO BE IMPLEMENTED:
 
 FIXED BUGS:
 ---------------------
+* Optical and magnetic encoder weren't working together.  The issue?  They were using the same counter/timer.
+
 * Can't tell when magnetic encoder is stopped.  The overflow flag is never set in Frequency mode, so a workaround is to check the CCA flag to see if the encoder has moved  since we last checked.  This works for speeds that arent' ridiculously slow.
 
 * System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.  This was fixed by adjusting the baud rate.  However, the system clock speed may have to be adjusted in order for the beaglebone communication to work properly.  (Note that only the setting for 9600 baud was adjusted.  The others are probably still wrong)
