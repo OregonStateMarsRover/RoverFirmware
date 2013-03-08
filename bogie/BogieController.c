@@ -45,6 +45,7 @@ void init(void)
 	/*** Initialize Sabertooth Motor Driver ***/
 	
 	sabertooth_init(&bogie.motor);
+	PORTD.OUTSET = 0x04;	// enable motor
 	
 	
 	sei();

@@ -5,6 +5,7 @@ CURRENT BUGS:
 --------------------
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
 * Packet building for sending over the serial protocol needs to be fixed
+* Bogie controllers aren't handling packets correctly when received immidiately after one to a different address.
 
 TO BE TESTED:
 -------------------
