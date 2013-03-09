@@ -60,7 +60,7 @@ void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
 		bogie_drive = s->receive_data[0];
 		bogie_turn = s->receive_data[1];
-		PORTD.OUTTGL = 0x20;	// toggle red LED
+		//PORTD.OUTTGL = RED;	// toggle red LED
 	}
 }
 
@@ -111,6 +111,11 @@ int main(void)
 
 
 	while(1) {
+		
+		// Check if rcv buffer overflowed
+		if( bogie.bb.rx_buffer.err ) {
+			PORTD.OUTCLR = RED;
+		}
 
 		drive_set( bogie_drive );
 		//actuator_set( bogie_turn );

@@ -11,10 +11,13 @@
 
 #include "avr_compiler.h"
 
+#define OVERFULL_ERR 0x01
+
 struct RingBuffer {
 	unsigned char * data;
 	unsigned short start, end, count;
 	unsigned short size;
+	unsigned char err;
 };
 
 typedef struct RingBuffer RingBuffer;
