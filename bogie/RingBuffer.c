@@ -10,13 +10,12 @@
 
 #include "RingBuffer.h"
 
-void RingBufferInit(RingBuffer * buf, unsigned short size) {
-	buf->data = (unsigned char*)malloc(sizeof(unsigned char)*size);
+void RingBufferInit(RingBuffer * buf, unsigned short capacity) {
+	buf->data = (unsigned char*)malloc(sizeof(unsigned char)*capacity);
 
 	buf->start = 0;
-	buf->end = 0;
-	buf->count = 0;
-	buf->size = size;
+	buf->size= 0;
+	buf->cap = capacity;
 	buf->err = 0;	// start off with no error
 }
 
@@ -25,41 +24,44 @@ void RingBufferDelete(RingBuffer * buf) {
 
 	buf->data = 0;
 	buf->start = 0;
-	buf->end = 0;
 	buf->size = 0;
+	buf->cap = 0;
 }
 
-unsigned short RingBufferAdd(RingBuffer * buf, unsigned char * data, unsigned short size) {
-	   unsigned short i;
+unsigned short RingBufferAdd(RingBuffer * buf, unsigned char * data, 
+		unsigned short length) {
+	unsigned short i;
 	// TODO When I'm more awake: Don't use a stupid loop. Use memcpy.
-	for (i=0;i< size; i++) {
-	if (!RingBufferAddByte(buf, data[i]))
-	break;
+	for (i=0;i< length; i++) {
+		if (!RingBufferAddByte(buf, data[i]))
+			break;
 	}
 
 	return i;
 }
 
 bool RingBufferAddByte(RingBuffer * buf, unsigned char data) {
-	if( buf->count < buf->size ) {
-		buf->count++;
-		buf->data[buf->end] = data;
+	if( buf->size < buf->cap ) {
+		buf->size++;
+		
+		buf->data[ (buf->size + buf->start) % buf->cap ] = data;
 
-		buf->end = (buf->end+1) % buf->size;
 		return true;
 	}
+	// else
 	buf->err |= OVERFULL_ERR;
 	return false; // buffer full, failed to add
 }
 
 unsigned char RingBufferGetByte(RingBuffer * buf) {
-	if (buf->end!=buf->start) {
-		unsigned char dat = buf->data[buf->start];
+	if (buf->size) {
+		unsigned char data = buf->data[buf->start];
 		buf->start = (buf->start+1) % buf->size;
-		buf->count--;
-		return dat;
+		buf->size--;
+		return data;
 	}
-
+	// else
+	buf->err |= READ_EMPTY_ERR;
 	return 0;
 }
 
@@ -82,10 +84,10 @@ unsigned short RingBufferGetData(RingBuffer * buf, unsigned char * dest_buf, uns
 }
 
 unsigned short RingBufferBytesUsed(RingBuffer * buf) {
-	return buf->count;
+	return buf->size;
 }
 
 unsigned short RingBufferBytesFree(RingBuffer * buf) {
-	return buf->size - buf->count;
+	return buf->cap - buf->size;
 }
 

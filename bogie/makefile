@@ -300,6 +300,12 @@ $(GDBINITFILE): $(TRG)
 	@echo "continue"    >> $(GDBINITFILE)
 	@echo
 	@echo "Use 'avr-gdb -x $(GDBINITFILE)'"
+
+
+#### Test for ring buffer ####
+buftest:
+	gcc buffertest.c -include RingBuffer.c -Wall -o buftest
+	./buftest
  
  
 #### Cleanup ####
@@ -309,6 +315,7 @@ clean:
 	$(REMOVE) $(LST) $(GDBINITFILE)
 	$(REMOVE) $(GENASMFILES)
 	$(REMOVE) $(HEXTRG)
+	$(REMOVE) buftest
  
  
  
