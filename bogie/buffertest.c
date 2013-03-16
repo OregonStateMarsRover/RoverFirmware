@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include "RingBuffer.h"
 
+//#define DEBUG
+
 
 void print_buffer( RingBuffer * buf ) {
 	fprintf(stdout, "{" );
@@ -20,13 +22,18 @@ void print_buffer( RingBuffer * buf ) {
 		int index = (i + buf->start) % buf->cap;
 		fprintf(stdout, "%d, ", buf->data[index]);
 	}
+	/*
+	   for( i = 0; i < buf->cap; ++i ) {
+	   fprintf(stdout, "%d, ", buf->data[i]);
+	   }
+	   */
 	fprintf(stdout, "}\n" ); 
 }
 
 void buffer_stats( RingBuffer * buf ) {
-	fprintf(stdout, "Cap: %d	Used: %d	Free: %d	Err: %X\n",
-		buf->cap, RingBufferBytesUsed( buf ),
-		RingBufferBytesFree( buf ), buf->err );
+	fprintf(stdout, "Cap: %d	Used: %d	Free: %d	Err: 0x%X\n",
+			buf->cap, RingBufferBytesUsed( buf ),
+			RingBufferBytesFree( buf ), buf->err );
 }
 
 int compare( char is, char * list ) {
@@ -44,23 +51,42 @@ int getnum( char *string, int * index ) {
 	int i = *index;
 
 	/* Find the start of the number */
-	for( ; !(string[i] >= '0' 
-				&& string[i] <= '9'); ++i)
+	for( ; (string[i] < '0' || string[i] > '9'); ++i)
 	{
-		if( compare( string[i], "\r\n" ) )
+		if( compare( string[i], "\r\n" ) ) {
 			*index = i;
+#ifdef DEBUG
 			printf("Aborted search at index %d.\n", i );
-			return 0;
+#endif
+			return -1;
+		}
 	}
 
 	/* Now decode the number */
+#ifdef DEBUG
 	printf("Started decoding number at index %d.\n", i );
+#endif
 	int sum;
 	for( sum = 0; (string[i] <= '9' && string[i] >= '0' ); ++i) {
 		sum = sum * 10 + string[i] - '0';
 	}
 	*index = i;
+#ifdef DEBUG
+	printf("Finished decoding %d at index %d.\n", sum, i);
+#endif
 	return sum;
+}
+
+void test_read_num( void ) {
+	char input[100];
+	fgets( input, 100, stdin );
+	int idx = 0;
+
+	int num = getnum( input, &idx );
+
+
+	printf("The number you entered was %d, ending at index %d.\n", 
+			num, idx );
 }
 
 int testbuf( int size ) {
@@ -71,11 +97,13 @@ int testbuf( int size ) {
 	char input[100];
 	unsigned char loop = 1;
 	int num;
+	int i;
+	unsigned char *list;
 
 	while( loop ) {
 		fgets( input, 100, stdin );
-		int index = 0;
-		switch(input[index++]) {	// return 0, but increment to 1
+		int index = 1;
+		switch(input[0]) {
 			case 'l':
 				// echo the list
 				print_buffer( mybuf );
@@ -93,11 +121,25 @@ int testbuf( int size ) {
 
 			case 'I':
 				// insert multiple elements in the list
-
+				list = malloc( 100 );	// make it large enough
+				for( i = 0; ((num = getnum( input, &index )) >= 0 ); ++i ){
+					list[i] = num;
+				}
+				RingBufferAdd( mybuf, list, i );
+				free( list );
 				break;
 
 			case 'D':
 				// delete multiple elements from the list
+				num = getnum( input, &index );
+				list = malloc( num );	// allocate num bytes
+
+				RingBufferGetData( mybuf, list, num );
+
+				for( i = 0; i < num; ++i ) {
+					fprintf(stdout, "Removed %d\n", list[i] );
+				}
+				free( list );
 				break;
 
 			case 'q':
@@ -105,7 +147,7 @@ int testbuf( int size ) {
 				loop = 0;
 				break;
 
-			case '?':
+			default:
 				// print options
 				fprintf(stderr, "%s%s%s%s%s%s%s",
 						"Options:\n",
@@ -116,14 +158,12 @@ int testbuf( int size ) {
 						"D deletes multiple elements.\n",
 						"q quits the program.\n");
 				break;
-			default:
-				break;
 		}
 		buffer_stats( mybuf );
 	}
 	RingBufferDelete( mybuf );
 	free( mybuf ); 
-		
+
 	return 0;
 }
 
@@ -135,18 +175,9 @@ int main( int argc, char **argv ) {
 	} else {
 		size = 10;
 	}
-	
-//	testbuf( size );
-	
-	char input[100];
-	fgets( input, 100, stdin );
-	int idx = 0;
 
-	int num = getnum( input, &idx );
-	
+	testbuf( size );
 
-	printf("The number you entered was %d, ending at index %d.\n", 
-		num, idx );
 
 
 	return 0;

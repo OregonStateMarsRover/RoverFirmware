@@ -304,7 +304,7 @@ $(GDBINITFILE): $(TRG)
 
 #### Test for ring buffer ####
 buftest:
-	gcc buffertest.c -include RingBuffer.c -Wall -o buftest
+	gcc buffertest.c -include RingBuffer.c -g -Wall -o buftest
 	./buftest
  
  
