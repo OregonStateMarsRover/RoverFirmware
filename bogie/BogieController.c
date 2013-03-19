@@ -5,7 +5,7 @@
 #include "BogieController.h"
 #include <string.h>
 
-#define BOGIE_ADDRESS 6 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 3 // Address of this unique bogie controller
 
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
@@ -34,7 +34,7 @@ void init(void)
 	
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
 	/***Mainboard USART init***/
-	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 10, true, false);
+	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 100, true, false);
 	
 	SerialDataInitialize( &bogie.packet );
 	// Set behavior when packet is received
@@ -58,9 +58,13 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
+		USART_WriteByte( &bogie.bb, (uint8_t)( s->receive_data[0] - bogie_drive + '5' ));
 		bogie_drive = s->receive_data[0];
 		bogie_turn = s->receive_data[1];
+		drive_set( bogie_drive );
+		//actuator_set( bogie_turn );
 		//PORTD.OUTTGL = RED;	// toggle red LED
+
 	}
 }
 
@@ -108,23 +112,27 @@ int main(void)
 {
 
 	init();
+	USART_Write( &bogie.bb, "\n\r\n", 3 );
 
+
+	RingBuffer * buffer = &(bogie.bb.rx_buffer);
+	uint8_t new_byte;
 
 	while(1) {
 		
 		// Check if rcv buffer overflowed
 		if( bogie.bb.rx_buffer.err ) {
 			PORTD.OUTCLR = RED;
+		} else {
+			PORTD.OUTSET = RED;
 		}
 
-		drive_set( bogie_drive );
-		//actuator_set( bogie_turn );
-		RingBuffer * buffer = &(bogie.bb.rx_buffer);
 
 		if( RingBufferBytesUsed( buffer ) ) {
 			PORTD.OUTTGL = GREEN;
-			uint8_t new_data = RingBufferGetByte( buffer );
-			ProcessDataChar( &(bogie.packet), new_data );
+			
+			new_byte = RingBufferGetByte( buffer );
+			ProcessDataChar( &(bogie.packet), new_byte );
 		} else {
 			_delay_ms( 10 );
 		}
