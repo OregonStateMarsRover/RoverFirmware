@@ -40,7 +40,7 @@ void init(void)
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
 	// Return error over RS485
-	//bogie.packet.ReceiveDataError = packet_error;
+	bogie.packet.ReceiveDataError = packet_error;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
@@ -60,7 +60,7 @@ void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
 		USART_WriteByte( &bogie.bb, (uint8_t)( s->receive_data[0] - bogie_drive + '5' ));
 		bogie_drive = s->receive_data[0];
-		bogie_turn = s->receive_data[1];
+		//bogie_turn = s->receive_data[1];
 		drive_set( bogie_drive );
 		//actuator_set( bogie_turn );
 		//PORTD.OUTTGL = RED;	// toggle red LED
@@ -73,37 +73,37 @@ void handle_packet( SerialData * s ) {
  * Send error back over RS485
  */
 void packet_error( SerialData *s, uint8_t errCode ) {
-	char * msg;
-	unsigned short len = 0;
+	unsigned char msg;
 	switch( errCode ){
 		case ERR_START_BYTE_INSIDE_PACKET:
-			msg = "ERR: startbyte inside packet\r\n";
+			msg = 'S';
 			break;
 		case ERR_EXPECTED_START_BYTE:
-			msg = "ERR: no start\r\n";
+			msg = 's';
+			break;
+
+		case ERR_RECEIVED_IGNORE_BYTE:
+			msg = 'G';
 			break;
 		case ERR_UNKNOWN_ESCAPED_CHARACTER:
-			msg = "ERR: unknow escape\r\n";
+			msg = 'g';
+			break;
+
+		case ERR_BUFFER_INSUFFICIENT:
+			msg = 'B';
 			break;
 		case ERR_EXCESSIVE_PACKET_LENGTH:
-			msg = "ERR: packet too long\r\n";
+			msg = 'b';
 			break;
+
 		case ERR_CHECKSUM_MISMATCH:
-			msg = "ERR: bad checksum\r\n";
-			break;
-		case ERR_BUFFER_INSUFFICIENT:
-			msg = "ERR: buffer too short\r\n";
-			break;
-		case ERR_RECEIVED_IGNORE_BYTE:
-			msg = "ERR: received bad byte\r\n";
+			msg = 'K';
 			break;
 		default:
-			msg = "ERR: unkown\r\n";
+			msg = '?';
 			break;
 	}
-	len = strlen(msg);
-
-	USART_Write( &bogie.bb, (uint8_t *)msg, len );
+	USART_Write_Byte( &bogie.bb, msg );
 }
 
 
@@ -112,7 +112,7 @@ int main(void)
 {
 
 	init();
-	USART_Write( &bogie.bb, "\n\r\n", 3 );
+	USART_Write( &bogie.bb, "\n\rReset:\r\n", 10 );
 
 
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
