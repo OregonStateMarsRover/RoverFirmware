@@ -32,9 +32,9 @@ void init(void)
 	/***Motor Driver USART init***/
 		
 	
-	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
+	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false);
 	/***Mainboard USART init***/
-	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 100, true, false);
+	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 100, true);
 	
 	SerialDataInitialize( &bogie.packet );
 	// Set behavior when packet is received
@@ -103,7 +103,7 @@ void packet_error( SerialData *s, uint8_t errCode ) {
 			msg = '?';
 			break;
 	}
-	USART_Write_Byte( &bogie.bb, msg );
+	USART_WriteByte( &bogie.bb, msg );
 }
 
 
@@ -112,7 +112,7 @@ int main(void)
 {
 
 	init();
-	USART_Write( &bogie.bb, "\n\rReset:\r\n", 10 );
+	USART_Write( &bogie.bb, (uint8_t *)"\n\rReset:\r\n", 10 );
 
 
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
