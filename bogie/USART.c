@@ -150,7 +150,7 @@ void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_ra
 			USART_PMODE_DISABLED_gc, false); // 8 bits, no parity, one stop bit
 	
 	// Enable the transmitter and receiver
-	if( serial->port.tx_pin_bm)
+	if( serial->port.rx_pin_bm)
 			USART_Rx_Enable(serial->port.usart_port);
 	if( serial->port.tx_pin_bm)
 			USART_Tx_Enable(serial->port.usart_port);
@@ -183,33 +183,14 @@ unsigned short USART_Write(struct USART * serial, unsigned char * buf, unsigned 
 }
 
 void USART_TransmitMode(struct USART * serial, bool doTx) {
-	/*if (serial->use_rs485) {
-		if (doTx)
-			PORTE.OUTSET = PIN1_bm;
-		else
-			PORTE.OUTCLR = PIN1_bm;
-		if (serial->use_rs485)
-			PORTF.OUTSET = PIN7_bm;
-	}*/
-	/*if (serial->port_num==4) {
-		if (serial->use_rs485) {
-			if (doTx) {
-				serial->port.gpio_port->OUTSET = serial->port.txen_pin_bm;
-			}
-			else
-				serial->port.gpio_port->OUTCLR = serial->port.txen_pin_bm;
-		}
-	}*/
 
 	if (serial->use_rs485) {
 		if (doTx) {
-			USART_Rx_Disable(serial->port.usart_port);
 			serial->port.gpio_port->OUTSET = serial->port.txen_pin_bm;
-			//PORTE.OUTSET = PIN1_bm;
 		}
 		else {
 			serial->port.gpio_port->OUTCLR = serial->port.txen_pin_bm;
-			USART_Rx_Enable(serial->port.usart_port);
+			USART_Rx_Enable(serial->port.usart_port);	// redundant, but why not?
 		}
 	}
 }
@@ -274,25 +255,14 @@ void USART_TXIntComplete(unsigned char port) {
 		}
 	}
 	else {
-		//USART_TXEn_Disable(USART_Table[port]);
+		USART_TXEn_Disable(USART_Table[port]);
 	}
 }
 
 
 void USART_WriteByte(struct USART * serial, unsigned char dat) {
 	if (serial->isSerialProtocol) {
-		/*unsigned char tempCTRLA = serial->port.usart_port->CTRLA;
-		tempCTRLA = (tempCTRLA & ~USART_DREINTLVL_gm) | USART_DREINTLVL_LO_gc;
-		serial->port.usart_port->CTRLA = tempCTRLA;
-		serial->port.usart_port->CTRLA = ((serial->port.usart_port)->CTRLA & ~USART_DREINTLVL_gm) | USART_DREINTLVL_LO_gc;
-		*/
-		/*if (serial->port.usart_port->CTRLA & USART_DREINTLVL_LO_gc)
-			PORTE.OUTSET = PIN0_bm;
-		else
-			PORTE.OUTCLR = PIN0_bm;
-		*/
 		serial->port.usart_port->DATA = dat;
-//		_delay_us(500);
 	}
 	else {
 		USART_Write(serial,&dat,1);
