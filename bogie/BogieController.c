@@ -59,6 +59,7 @@ void init(void)
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
 		USART_WriteByte( &bogie.bb, (uint8_t)( s->receive_data[0] - bogie_drive + '5' ));
+		USART_WriteByte( &bogie.bb, (uint8_t)' ');
 		bogie_drive = s->receive_data[0];
 		//bogie_turn = s->receive_data[1];
 		drive_set( bogie_drive );

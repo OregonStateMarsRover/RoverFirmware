@@ -254,3 +254,7 @@ ISR(USARTD0_DRE_vect)
 {
 	USART_DataRegEmpty(2);
 }
+
+ISR( BADISR_vect ) {
+	// do nothing
+}
