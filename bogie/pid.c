@@ -101,7 +101,8 @@ void pid_turn_controller( struct pid * val ) {
 	else if( output < -127 )
 		output = -127;
 
-	if( PORTB.IN & (LIM1 | LIM0) )
+	/* Use limit switch as a deadman; if it's not pressed, don't move. */
+	if( !(PORTB.IN & LIM1) )
 		output = 0;
 
 	val->output = output;
@@ -139,6 +140,7 @@ ISR(RTC_OVF_vect) {
 	 * for it to accumulate smoothly. */
 	drive_set( speed_pid.output >> 8);
 	actuator_set( turn_pid.output );
+	// actuator_set( 0 );
 
 //	PORTD.OUTTGL = GREEN;
 

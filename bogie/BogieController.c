@@ -5,7 +5,7 @@
 #include "BogieController.h"
 #include <string.h>
 
-#define BOGIE_ADDRESS 6 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 3 // Address of this unique bogie controller
 
 
 void init(void)
@@ -112,9 +112,9 @@ int main(void)
 			new_data = RingBufferGetByte( buffer );
 			ProcessDataChar( &(bogie.packet), new_data );
 		} else {
-			_delay_ms( 3 );
+			_delay_ms( 20 );
 		}
-		if( prescaler % 32  == 0 ) {
+		if( prescaler % 32 == 0 ) {
 			print_pid( &turn_pid );
 		}
 	}

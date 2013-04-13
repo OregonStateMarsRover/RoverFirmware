@@ -28,7 +28,7 @@ void sabertooth_init( )
 
 	/* void pid_setup( struct pid * settings, int16_t p, int16_t i, int16_t d, int16_t ramp, uint8_t dt) */
 	pid_setup( &speed_pid, 20, 0, 0, 300, 10 ); // dt is the RTC period
-	pid_setup( &turn_pid, -125, 0, 0, 1, 10 );
+	pid_setup( &turn_pid, 1, 0, 0, 1, 10 );
 
 	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false);
 
