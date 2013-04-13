@@ -5,8 +5,6 @@ CURRENT BUGS:
 --------------------
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
 * Packet building for sending over the serial protocol needs to be fixed
-* Bogie controllers aren't handling packets correctly when received immidiately after one to a different address.  This appears to be an issue with dropping packets - the USART Sends are taking too much time, and so the USART Receive interrupts can't copy the bytes over in time.
-
 
 TO BE TESTED:
 -------------------
@@ -27,6 +25,9 @@ TO BE IMPLEMENTED:
 
 FIXED BUGS:
 ---------------------
+* Bogie controllers aren't handling packets correctly when received immidiately after one to a different address.  This appears to be an issue with dropping packets - the USART Sends are taking too much time, and so the USART Receive interrupts can't copy the bytes over in time.
+The issue was actually that the buffer functions weren't thread-safe, and were operating both in and out of interrupt context.
+
 
 * System untested.  Can write code to the XMega, but the communication to the Sabertooth doesn't work.  This was fixed by adjusting the baud rate.  However, the system clock speed may have to be adjusted in order for the beaglebone communication to work properly.  (Note that only the setting for 9600 baud was adjusted.  The others are probably still wrong)
 

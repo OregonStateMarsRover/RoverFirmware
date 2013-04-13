@@ -9,7 +9,9 @@
 #include <stdlib.h> // for malloc()
 #include <string.h> // for memcpy()
 
+#include "BogieCommon.h"
 #include "RingBuffer.h"
+
 
 void RingBufferInit(RingBuffer * buf, unsigned short capacity) {
 	buf->data = (unsigned char*)malloc(sizeof(unsigned char)*capacity);
@@ -31,64 +33,67 @@ void RingBufferDelete(RingBuffer * buf) {
 
 unsigned short RingBufferAdd(RingBuffer * buf, unsigned char * data, 
 		unsigned short length) {
+	cli();
 
 	/* If we try to put in too many elements, then don't insert any. */
 	if( (length + buf->size) > buf->cap ) {
 		buf->err |= LONG_MSG_ERR;
-		return 0;
-	}
-	unsigned short end = (buf->start + buf->size) % buf->cap;
-	/* We are using some pointer arithmatic here.
-	 * Don't worry - our data length is one byte.
-	 * I only wrote it this way because it looks simpler than
-	 * indexing and then referencing.
-	 */
-	if( (end + length) > buf->cap ) {
-		memcpy( (buf->data + end) , data, (buf->cap - end) );
-		memcpy( buf->data, (data + buf->cap - end), 
-				(length + end - buf->cap) );
+		length = 0;	// wrote zero bytes
 	} else {
-		memcpy( &(buf->data[end]), data, length );
+		unsigned short end = (buf->start + buf->size) % buf->cap;
+		/* We are using some pointer arithmatic here.
+		 * Don't worry - our data length is one byte.
+		 * I only wrote it this way because it looks simpler than
+		 * indexing and then referencing.
+		 */
+		if( (end + length) > buf->cap ) {
+			memcpy( (buf->data + end) , data, (buf->cap - end) );
+			memcpy( buf->data, (data + buf->cap - end), 
+					(length + end - buf->cap) );
+		} else {
+			memcpy( &(buf->data[end]), data, length );
+		}
+		buf->size += length;
 	}
-	buf->size += length;
-
-	/*
-	// TODO When I'm more awake: Don't use a stupid loop. Use memcpy.
-	unsigned short i;
-	for (i=0;i< length; i++) {
-		if (!RingBufferAddByte(buf, data[i]))
-			break;
-	}
-	*/
-
+	sei();
 	return length;
 }
 
 bool RingBufferAddByte(RingBuffer * buf, unsigned char data) {
+	cli();
+	unsigned char rval;
 	if( buf->size < buf->cap ) {
 		buf->data[ (buf->size + buf->start) % buf->cap ] = data;
 		buf->size++;
 
-		return true;
+		rval = true;
+	} else {
+		buf->err |= OVERFULL_ERR;
+		rval = false; // buffer full, failed to add
 	}
-	// else
-	buf->err |= OVERFULL_ERR;
-	return false; // buffer full, failed to add
+
+	sei();
+	return rval;
 }
 
 unsigned char RingBufferGetByte(RingBuffer * buf) {
+	cli();
+	unsigned char rval;
 	if (buf->size) {
 		unsigned char data = buf->data[buf->start];
 		buf->start = (buf->start+1) % buf->cap;
 		buf->size--;
-		return data;
+		rval = data;
+	} else {
+		buf->err |= READ_EMPTY_ERR;
+		rval = 0;
 	}
-	// else
-	buf->err |= READ_EMPTY_ERR;
-	return 0;
+	sei();
+	return rval;
 }
 
 unsigned short RingBufferGetData(RingBuffer * buf, unsigned char * dest_buf, unsigned short bytes) {
+	cli();
 
 	if( bytes > buf->size ) {
 		bytes = buf->size;
@@ -109,24 +114,8 @@ unsigned short RingBufferGetData(RingBuffer * buf, unsigned char * dest_buf, uns
 
 	buf->start = (buf->start + bytes) % buf->cap;
 	buf->size -= bytes;
+	sei();
 	return bytes;
-	/*
-	unsigned short i, toRead;
-	// TODO When I'm more awake: Don't use a stupid loop. Use memcpy.
-
-	if (RingBufferBytesUsed(buf) < bytes) {
-		toRead = RingBufferBytesUsed(buf);
-	}
-	else {
-		toRead = bytes;
-	}
-
-	for (i=0;i<toRead;i++) {
-		dest_buf[i] = RingBufferGetByte(buf);
-	}
-
-	return toRead; 
-	*/
 }
 
 unsigned short RingBufferBytesUsed(RingBuffer * buf) {

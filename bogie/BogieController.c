@@ -5,7 +5,7 @@
 #include "BogieController.h"
 #include <string.h>
 
-#define BOGIE_ADDRESS 3 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 7 // Address of this unique bogie controller
 
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
@@ -40,7 +40,7 @@ void init(void)
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
 	// Return error over RS485
-	bogie.packet.ReceiveDataError = packet_error;
+	//bogie.packet.ReceiveDataError = packet_error;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
@@ -58,8 +58,8 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
-		USART_WriteByte( &bogie.bb, (uint8_t)( s->receive_data[0] - bogie_drive + '5' ));
-		USART_WriteByte( &bogie.bb, (uint8_t)' ');
+		//USART_WriteByte( &bogie.bb, (uint8_t)( s->receive_data[0] - bogie_drive + '5' ));
+		//USART_WriteByte( &bogie.bb, (uint8_t)' ');
 		bogie_drive = s->receive_data[0];
 		//bogie_turn = s->receive_data[1];
 		drive_set( bogie_drive );
