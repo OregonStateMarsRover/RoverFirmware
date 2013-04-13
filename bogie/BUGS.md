@@ -6,9 +6,14 @@ CURRENT BUGS:
 * Turn motor turns much faster in forward than reverse.
 * Bogie controller address is hard-coded as a macro in BogieController.c.  There should be a non-volatile way of setting the address of each bogie controller so code doesn't have to be customized for each one.
 * Can't tell direction of magnetic encoder - encoder is too glitchy
+* Packet building for sending over the serial protocol needs to be fixed
 
 TO BE TESTED:
 -------------------
+
+* Optical encoder ( position )
+* Magnetic encoder ( speed )
+* PID
 
 
 TO BE IMPLEMENTED:
@@ -22,6 +27,9 @@ TO BE IMPLEMENTED:
 
 FIXED BUGS:
 ---------------------
+* Bogie controllers aren't handling packets correctly when received immidiately after one to a different address.  This appears to be an issue with dropping packets - the USART Sends are taking too much time, and so the USART Receive interrupts can't copy the bytes over in time.
+The issue was actually that the buffer functions weren't thread-safe, and were operating both in and out of interrupt context.
+
 * Optical and magnetic encoder weren't working together.  The issue?  They were using the same counter/timer.
 
 * Can't tell when magnetic encoder is stopped.  The overflow flag is never set in Frequency mode, so a workaround is to check the CCA flag to see if the encoder has moved  since we last checked.  This works for speeds that arent' ridiculously slow.
@@ -39,7 +47,7 @@ semicolons in them.  Also, the LEDs are on when pulled low, not high.
 * Packet handler has checksum errors if data contains escaped byte.  Fixed this by comparing to the python code in RoverInterfface.  Be aware that this implementation is different from the Taj protocol, although it may appear very similar at first.
 
 * The Sabertooth needs some time for initialization before it is ready to
-take configuration.  (In this case, the timeout)  This was fixed by first writing 1 byte with the decimal value 170 to the Sabertooth.  Apparently this should be the first byte, and the Sabertooth uses it for baud rate calculation.
+take configuration.  (In this case, the timeout)  This was fixed by first writing 1 byte with the decimal value 170 to the Sabertooth.  Apparently this should be the first byte, and the Sabertooth uses it for baud rate calculation.  I'm not sure that this actually fixed the issue, but it appears to happen less often now.
 
 CONFIRMED WORKING:
 -------------------------

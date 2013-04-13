@@ -4,9 +4,8 @@
 
 #include "BogieController.h"
 #include <string.h>
-#include <stdio.h>
 
-#define BOGIE_ADDRESS 7 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 6 // Address of this unique bogie controller
 
 
 void init(void)
@@ -20,22 +19,24 @@ void init(void)
 	PORTB.DIR = 0x00;
 	PORTC.DIR = 0b00001010;	//only outputs are UART TX
 	PORTD.DIR = 0b00111110;	//all outputs; rest are unused
+
+	/***Motor Driver USART init***/
+		
 	
+	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false);
 	/***Mainboard USART init***/
-	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 10, true, false);
+	USART_Open(&bogie.bb, 0, USART_BAUD_115200, 100, 100, true);
 	
 	SerialDataInitialize( &bogie.packet );
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
 	// Return error over RS485
-	bogie.packet.ReceiveDataError = packet_error;
-
+	//bogie.packet.ReceiveDataError = packet_error;
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
 	sabertooth_init();
-
-	
+	PORTD.OUTSET = 0x04;	// enable motor
 	
 	
 	sei();
@@ -47,11 +48,9 @@ void init(void)
  * as the serial callback.
  */
 void handle_packet( SerialData * s ) {
-	if( s->receive_address == BOGIE_ADDRESS 
-			//&& s->receive_length >= 3 
-		) {
-		bogie.drive = s->receive_data[0];
-		bogie.turn = s->receive_data[1];
+	if( s->receive_address == BOGIE_ADDRESS ) {
+		bogie_drive = s->receive_data[0];
+		bogie_turn = s->receive_data[1];
 	}
 }
 
@@ -60,37 +59,37 @@ void handle_packet( SerialData * s ) {
  * Send error back over RS485
  */
 void packet_error( SerialData *s, uint8_t errCode ) {
-	char * msg;
-	unsigned short len = 0;
+	unsigned char msg;
 	switch( errCode ){
 		case ERR_START_BYTE_INSIDE_PACKET:
-			msg = "ERR: startbyte inside packet\r\n";
+			msg = 'S';
 			break;
 		case ERR_EXPECTED_START_BYTE:
-			msg = "ERR: no start\r\n";
+			msg = 's';
+			break;
+
+		case ERR_RECEIVED_IGNORE_BYTE:
+			msg = 'G';
 			break;
 		case ERR_UNKNOWN_ESCAPED_CHARACTER:
-			msg = "ERR: unknow escape\r\n";
+			msg = 'g';
+			break;
+
+		case ERR_BUFFER_INSUFFICIENT:
+			msg = 'B';
 			break;
 		case ERR_EXCESSIVE_PACKET_LENGTH:
-			msg = "ERR: packet too long\r\n";
+			msg = 'b';
 			break;
+
 		case ERR_CHECKSUM_MISMATCH:
-			msg = "ERR: bad checksum\r\n";
-			break;
-		case ERR_BUFFER_INSUFFICIENT:
-			msg = "ERR: buffer too short\r\n";
-			break;
-		case ERR_RECEIVED_IGNORE_BYTE:
-			msg = "ERR: received bad byte\r\n";
+			msg = 'K';
 			break;
 		default:
-			msg = "ERR: unkown\r\n";
+			msg = '?';
 			break;
 	}
-	len = strlen(msg);
-
-	USART_Write( &bogie.bb, (uint8_t *)msg, len );
+	USART_WriteByte( &bogie.bb, msg );
 }
 
 
@@ -103,7 +102,7 @@ int main(void)
 	char msg[50];
 	unsigned short len = 0;
 	*/
-	
+
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
 	uint8_t new_data;
 	uint8_t prescaler = 0;
@@ -114,7 +113,6 @@ int main(void)
 		++prescaler;
 
 		if( RingBufferBytesUsed( buffer ) ) {
-			//PORTD.OUTTGL = GREEN;
 			new_data = RingBufferGetByte( buffer );
 			ProcessDataChar( &(bogie.packet), new_data );
 		} else {
@@ -128,3 +126,4 @@ int main(void)
 
 	return 0;
 }
+

@@ -41,12 +41,6 @@ struct USART {
 	
 	RingBuffer tx_buffer;
 	RingBuffer rx_buffer;
-	
-	void * ref;
-	void (*CharacterReceived)(struct USART * port, unsigned char dat);
-	void (*CharacterTransmitted)(struct USART * port);
-	bool isSerialProtocol;
-	char charCtr;
 };
 
 struct USART * USART_Table[7];
@@ -86,7 +80,7 @@ void USART_InitPortStructs( void );
  * rx_buf: Number of bytes to allocate for RX buffer.
  * use_rs485: If true, serial port is half-duplex and the RS-485 transceiver hardware will enabled before each transmission. 
  */
-void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485, bool isSerialProtocol);
+void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485);
 
 /**
  * Add data to the TX buffer to be transmitted.
@@ -145,6 +139,9 @@ unsigned short USART_RXFree(struct USART * serial);
  */
 unsigned short USART_RXUsed(struct USART * serial);
 
+/**
+ * For interrupt-free operation of the USART?
+ */
 void USART_TransmitMode(struct USART * serial, bool doTx);
 
 /**
