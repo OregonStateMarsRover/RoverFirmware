@@ -49,8 +49,8 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
-		bogie_drive = s->receive_data[0];
-		bogie_turn = s->receive_data[1];
+		bogie.drive = s->receive_data[0];
+		bogie.turn = s->receive_data[1];
 	}
 }
 
@@ -98,10 +98,6 @@ int main(void)
 {
 
 	init();
-	/*
-	char msg[50];
-	unsigned short len = 0;
-	*/
 
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
 	uint8_t new_data;

@@ -101,6 +101,9 @@ void pid_turn_controller( struct pid * val ) {
 	else if( output < -127 )
 		output = -127;
 
+	if( PORTB.IN & (LIM1 | LIM0) )
+		output = 0;
+
 	val->output = output;
 	
 }

@@ -30,7 +30,7 @@ void sabertooth_init( )
 	pid_setup( &speed_pid, 20, 0, 0, 300, 10 ); // dt is the RTC period
 	pid_setup( &turn_pid, -125, 0, 0, 1, 10 );
 
-	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false, false);
+	USART_Open(&bogie.motor, 2, USART_BAUD_9600, 10, 10, false);
 
 	/* The datasheet says the first byte transmitted must be 170,
 	 * and the Sabertooth will automatically detect the baud rate.
