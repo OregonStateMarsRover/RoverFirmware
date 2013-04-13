@@ -5,7 +5,7 @@
 #include "BogieController.h"
 #include <string.h>
 
-#define BOGIE_ADDRESS 7 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 6 // Address of this unique bogie controller
 
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
@@ -113,8 +113,6 @@ int main(void)
 {
 
 	init();
-	USART_Write( &bogie.bb, (uint8_t *)"\n\rReset:\r\n", 10 );
-
 
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
 	uint8_t new_byte;
