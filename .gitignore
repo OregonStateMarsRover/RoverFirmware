@@ -11,3 +11,9 @@
 
 # Editor files
 *.swp
+
+
+# We will name symbolic links to datasheets with .link extensions
+# but we want these to be ignored, since they will be different on
+# different systems.
+*.link
