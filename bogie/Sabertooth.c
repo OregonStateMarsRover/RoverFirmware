@@ -28,6 +28,7 @@ void sabertooth_init(struct USART *p)
 	 * Maybe this will fix the issue of the timeout not being
 	 * recognized the first time the device gains power.
 	 */
+        _delay_ms(100);
 	USART_WriteByte(saber_port, 170 );
 
 
