@@ -5,7 +5,10 @@
 #include "BogieController.h"
 #include <string.h>
 
-#define BOGIE_ADDRESS 6 // Address of this unique bogie controller
+#define BOGIE_ADDRESS 5 // Address of this unique bogie controller
+//#define MOTOR_TEST
+//#define PACKET_DEBUG
+//#define RS485_TEST
 
 /* Pull LEDs low to turn them on */
 #define GREEN 0x10	// green LED on port D
@@ -40,7 +43,9 @@ void init(void)
 	// Set behavior when packet is received
 	bogie.packet.ReceivePacketComplete = handle_packet;
 	// Return error over RS485
-	//bogie.packet.ReceiveDataError = packet_error;
+#ifdef PACKET_DEBUG
+	bogie.packet.ReceiveDataError = packet_error;
+#endif
 
 	/*** Initialize Sabertooth Motor Driver ***/
 	
@@ -58,13 +63,12 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == BOGIE_ADDRESS ) {
-		//USART_WriteByte( &bogie.bb, (uint8_t)( s->receive_data[0] - bogie_drive + '5' ));
-		//USART_WriteByte( &bogie.bb, (uint8_t)' ');
 		bogie_drive = s->receive_data[0];
 		//bogie_turn = s->receive_data[1];
 		drive_set( bogie_drive );
-		//actuator_set( bogie_turn );
-		//PORTD.OUTTGL = RED;	// toggle red LED
+#ifdef PACKET_DEBUG
+		PORTD.OUTTGL = RED;	// toggle red LED
+#endif
 
 	}
 }
@@ -116,6 +120,29 @@ int main(void)
 
 	RingBuffer * buffer = &(bogie.bb.rx_buffer);
 	uint8_t new_byte;
+	
+#ifdef MOTOR_TEST
+	int8_t i = 0;
+	int8_t dir = 1;
+	while(1) {
+		drive_set( i );
+		i += dir;
+		if( (i == 127 ) || (i == -127) ) {
+			dir = -dir;
+		}
+		_delay_ms(20);
+	}
+#endif
+
+
+#ifdef RS485_TEST
+	while(1) {
+
+		USART_Write(&bogie.bb, "Hello World!\n\r", 14 );
+		_delay_ms( 500 );
+	}
+#endif
+
 
 	while(1) {
 		
