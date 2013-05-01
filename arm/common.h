@@ -36,4 +36,17 @@ struct status_data arm;
 // Used for setting the system clock to 16Mhz
 void set_clock( void );
 
+/* This function just gets the time from the RTC.
+ * If you want something with even less overhead,
+ * then just use RTC.CNTL
+ */
+#define get_time() (RTC.CNT)
+
+/* Set up the real-time clock for timing tasks.
+ * A prescaler of 1 will yield 1 tick every 30.5us
+ * A prescaler of 5 will yield 1 tick every 2ms
+ * A prescaler of 0 will stop the clock
+ */
+void setup_rtc( uint8_t prescaler );
+
 #endif

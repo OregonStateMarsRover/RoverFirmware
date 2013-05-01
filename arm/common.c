@@ -63,3 +63,17 @@ void set_clock( void ) {
 	}
 }
 
+
+/* Setup the realtime clock.
+ * Use a period in miliseconds.
+ */
+void setup_rtc( uint8_t prescaler ) {
+	/* Enable the ULP clock */
+	CLK.RTCCTRL = 0x01;
+
+	/* Setup the RTC */
+	RTC.CNT = 0;
+	RTC.INTCTRL = 0;	// no interrupt
+	RTC.CTRL = prescaler & 0x07;
+}
+
