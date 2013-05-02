@@ -63,7 +63,7 @@ void send_command(uint8_t opcode, uint8_t data)
 	USART_WriteByte(saber_port, (address + opcode + data) & 0x7F);
 }
 
-void motor_set(int8_t speed, uint8_t forward_cmd, uint8_t reverse_cmd)
+void motor_set(int16_t speed, uint8_t forward_cmd, uint8_t reverse_cmd)
 {
 	uint8_t opcode;
 
@@ -81,12 +81,12 @@ void motor_set(int8_t speed, uint8_t forward_cmd, uint8_t reverse_cmd)
 	send_command(opcode, speed);
 }
 
-void elbow_set(int8_t speed)
+void elbow_set(int16_t speed)
 {
 	motor_set(speed, ACTUATOR_FORWARD_CMD, ACTUATOR_REVERSE_CMD);
 }
 
-void shoulder_set(int8_t speed)
+void shoulder_set(int16_t speed)
 {
 	motor_set(speed, DRIVE_FORWARD_CMD, DRIVE_REVERSE_CMD);
 }

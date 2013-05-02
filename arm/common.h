@@ -10,6 +10,8 @@
 #include "USART.h"
 #include "Sabertooth.h"
 #include "SerialProtocol.h"
+#include "pots.h"
+#include "itoa.h"
 
 // Limit switches are on PORTB
 // If they are hi, that means they aare pressed or disconnected

@@ -84,7 +84,7 @@ PROJECTNAME=arm
 # (list all files to compile, e.g. 'a.c b.cpp as.S'):
 # Use .cc, .cpp or .C suffix for C++ files, use .S 
 # (NOT .s !!!) for assembly source code files.
-PRJSRC=common.c arm.c RingBuffer.c Sabertooth.c SerialProtocol.c USART.c
+PRJSRC=common.c arm.c RingBuffer.c Sabertooth.c SerialProtocol.c USART.c pots.c itoa.c
  
 # additional includes (e.g. -I/path/to/mydir)
 #INC=-I/path/to/include

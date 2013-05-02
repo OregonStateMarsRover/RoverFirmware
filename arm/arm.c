@@ -3,11 +3,11 @@
  */
 
 #include "arm.h"
+#include <stdio.h>
 
 #define ADDRESS 8 // Address of the arm controller
 
-void init(void)
-{
+void init(void) {
 	set_clock( ); // set clock to 16Mhz
 
 	USART_InitPortStructs();
@@ -15,7 +15,7 @@ void init(void)
 	/***set I/O port directions***/
 	PORTA.DIR = 0x00;
 	PORTB.DIR = 0x00;
-	PORTC.DIR = 0b00001010;	//only outputs are UART TX
+	PORTC.DIR = 0b10011010;	//outputs are UART TX and SPI control
 	PORTD.DIR = 0b00111110;	//all outputs; rest are unused
 
 	/***Motor Driver USART init***/
@@ -47,7 +47,7 @@ void init(void)
  */
 void handle_packet( SerialData * s ) {
 	if( s->receive_address == ADDRESS ) {
-		PORTD.OUTTGL = RED;	// toggle red LED
+		PORTD.OUTTGL = GREEN;	// toggle red LED
 		// No actions yet
 
 	}
@@ -94,16 +94,16 @@ void packet_error( SerialData *s, uint8_t errCode ) {
 
 struct pid{
 	int16_t setpoint;
-	int16_t pv_scale;	// treat as 8.8 fixed point
+	_Accum pv_scale;	// s15.16 fixed point
 	int16_t pv_offset;
-	int16_t pv;			// calculated, not raw
-	int16_t p;			// treat as 8.8 fixed point
-	int8_t output;
+	_Accum pv;			// calculated, not raw
+	short _Accum p;		// s7.8 fixed point
+	int16_t output;
 };
 
-void update_pid( struct pid v, uint8_t enc ) {
-	v.pv = get_angle(enc) * v.pv_scale - v.pv_offset;
-	//v.ouput = (v.setpoint - v.pv) * v.p;
+void update_pid( struct pid * v, uint8_t enc ) {
+	v->pv = get_angle(enc) * v->pv_scale - v->pv_offset;
+	v->output = (v->setpoint - v->pv) * v->p;
 }
 
 
@@ -112,58 +112,71 @@ int main(void)
 
 	init();
 
+	char text[10];
+
+
+	setup_rtc(1);
+	init_spi( 6 );	// don't set this lower than 4 - the RS483 chips are only made for 1Mhz
+
 	RingBuffer * buffer = &(arm.bb.rx_buffer);
 	uint8_t new_byte;
 	uint16_t time = get_time();
-	int8_t test_speed = 15;
+	int8_t test_speed = 50;
+
 
 	struct pid shoulder, elbow;
-	shoulder.pv_scale = 0x0100;
+	shoulder.pv_scale = 1;
 	shoulder.pv_offset = 0;
 	shoulder.p = 0;
-	shoulder.output = test_speed;
+	shoulder.output = 0;
 
-	elbow.pv_scale = 0x0100;
-	elbow.pv_offset = 0;
-	elbow.p = 0;
-	elbow.output = test_speed;
+	elbow.pv_scale = -0.01029;
+	elbow.pv_offset = 6;
+	elbow.p = 10;
+	elbow.output = 0;
+	elbow.setpoint = 60;
 
 	while(1) {
-		if( get_time() - time > 100 ) 
+		if( get_time() - time > 10 ) 
 		{
+			PORTD.OUTTGL = RED;
 
 			time = get_time();
 			
-			update_pid( shoulder, 0 );
-			update_pid( elbow, 1 );
+			/*
+			update_pid( &shoulder, 0 );
+			*/
+			update_pid( &elbow, 1 );
+
+			//USART_Write( &arm.bb, (unsigned char *)text, mitoa( shoulder.pv, text, 10) );
+			USART_Write( &arm.bb, (unsigned char *)text, mitoa( elbow.pv, text, 10) );
+			USART_Write( &arm.bb, (unsigned char *)"\t", 1 );
 
 
 			uint8_t limits = PORTB.IN;
 
-			/* Test the motors and limit directions */
+			/* Test the motors and limit directions
 			if( (limits & LIM0) && (limits & LIM1) )
 				shoulder.output = 0;
-			else if( limits & LIM0 )
+			else*/ if( limits & LIM1 )
 				shoulder.output = -test_speed;
-			else if( limits & LIM1 )
+			else if( limits & LIM0 )
 				shoulder.output = test_speed;
 
-			if( (limits & LIM2) && (limits & LIM3) )
+			/*if( (limits & LIM2) && (limits & LIM3) )
 				elbow.output = 0;
-			else if( limits & LIM2 )
+			else*/ if( limits & LIM3 )
 				elbow.output = -test_speed;
-			else if( limits & LIM3 )
+			else if( limits & LIM2 )
 				elbow.output = test_speed;
 			
+			// shoulder_set( shoulder.output );
 			elbow_set( elbow.output );
-			shoulder_set( shoulder.output );
 
 		}
 
 		else if( RingBufferBytesUsed( buffer ) ) 
 		{
-			PORTD.OUTTGL = GREEN;
-			
 			new_byte = RingBufferGetByte( buffer );
 			ProcessDataChar( &(arm.packet), new_byte );
 		} 
