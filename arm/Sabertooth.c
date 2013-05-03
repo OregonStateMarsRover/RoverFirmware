@@ -51,6 +51,7 @@ void sabertooth_init(struct USART *p)
 	send_command( DEADBAND_CMD, 1 );	// set deadband to minimum
 
 
+	PORTD.OUTSET = 0x04;	// enable motor
 
 }
 

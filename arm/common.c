@@ -77,3 +77,76 @@ void setup_rtc( uint8_t prescaler ) {
 	RTC.CTRL = prescaler & 0x07;
 }
 
+
+
+
+void update_pid( struct pid * v, uint8_t enc ) {
+	v->pv = get_angle(enc) * v->pv_scale - v->pv_offset;
+	v->output = (v->setpoint - v->pv) * v->p;
+}
+
+
+
+/* Basic packet handler to allow me to test the RS485 communication.
+ * This will probably get its own file later, but for now, we're using it
+ * as the serial callback.
+ */
+void handle_packet( SerialData * s ) {
+	if( s->receive_address == ADDRESS ) {
+		PORTD.OUTTGL = GREEN;
+		switch (s->receive_data[0] ) {
+			case 1:
+				// Update shoulder angle
+				arm.shoulder.setpoint = s->receive_data[1] | (s->receive_data[2]<<8);
+				break;
+			case 2:
+				// Update elbow angle
+				arm.elbow.setpoint = s->receive_data[1] | (s->receive_data[2]<<8);
+				break;
+			default:
+				// Do nothing?
+				break;
+		}
+
+	}
+}
+
+
+/* Receive data error.
+ * Send error back over RS485
+ */
+void packet_error( SerialData *s, uint8_t errCode ) {
+	unsigned char msg;
+	switch( errCode ){
+		case ERR_START_BYTE_INSIDE_PACKET:
+			msg = 'S';
+			break;
+		case ERR_EXPECTED_START_BYTE:
+			msg = 's';
+			break;
+
+		case ERR_RECEIVED_IGNORE_BYTE:
+			msg = 'G';
+			break;
+		case ERR_UNKNOWN_ESCAPED_CHARACTER:
+			msg = 'g';
+			break;
+
+		case ERR_BUFFER_INSUFFICIENT:
+			msg = 'B';
+			break;
+		case ERR_EXCESSIVE_PACKET_LENGTH:
+			msg = 'b';
+			break;
+
+		case ERR_CHECKSUM_MISMATCH:
+			msg = 'K';
+			break;
+		default:
+			msg = '?';
+			break;
+	}
+	USART_WriteByte( &arm.bb, msg );
+}
+
+
