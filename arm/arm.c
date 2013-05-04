@@ -60,13 +60,13 @@ int main(void)
 
 	shoulder->pv_scale = 0.17578;
 	shoulder->pv_offset = 2121;
-	shoulder->p = 40;
+	shoulder->p = 20;
 	shoulder->output = 0;
 	shoulder->setpoint = 130;
 
 	elbow->pv_scale = 0.17578;
 	elbow->pv_offset = 2915;
-	elbow->p = -25;
+	elbow->p = -20;
 	elbow->output = 0;
 	elbow->setpoint = 20;
 
