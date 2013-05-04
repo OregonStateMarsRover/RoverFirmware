@@ -19,6 +19,7 @@
  * If they are low, that means it is okay */
 #define LIM0 0x04	// left limit 0 on port B
 #define LIM1 0x08	// right limit 1 on port B
+#define LIMITS (PORTB.IN & 0x0C)
 
 
 void init(void)
@@ -144,32 +145,34 @@ int main(void)
 
 	USART_Write( &bogie.bb, (uint8_t *)"Encoder test\r\n", 14 );
 
-	int8_t abs_speed = 12;
+	int8_t abs_speed = 17;
 	int8_t speed = 0;
 
 	char msg[20];
 	uint8_t msg_len;
-	TCC1.CNT = 0;
 
-	/* Ramp the drive motor speed up and down,
-	 * to test the motor controllers */
-	while(1) {
-		msg_len = snprintf( msg, 20, "%d, ", get_turn() );
-		if( msg_len > 20 ) msg_len = 20;
-		USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+	while(!(LIMITS & LIM1)) {
 
-		int8_t limits = PORTB.IN & (LIM0 | LIM1);
-		
-		if( limits == LIM0 )
-			speed = abs_speed;
-		else if( limits == LIM1 )
-			speed = -abs_speed;
-		else if( limits )
-			speed = 0;
-
-		actuator_set( speed );
+		actuator_set( abs_speed );
 
 		_delay_ms(50);
 	}
+	actuator_set( 0 );
+	_delay_ms( 5 );
+	TCC1.CNT = 0;
+
+	while(!(LIMITS & LIM0)) {
+
+		actuator_set( -abs_speed );
+		_delay_ms(50);
+	}
+	actuator_set( 0 );
+	_delay_ms(5);
+	msg_len = snprintf( msg, 20, "%u, ", (uint16_t) get_turn() );
+	if( msg_len > 20 ) msg_len = 20;
+	USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+
+	_delay_ms( 50 );
+
 	return 0;
 }
