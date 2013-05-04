@@ -81,7 +81,7 @@ void setup_rtc( uint8_t prescaler ) {
 
 
 void update_pid( struct pid * v, uint8_t enc ) {
-	v->pv = get_angle(enc) * v->pv_scale - v->pv_offset;
+	v->pv = (get_angle(enc) - v->pv_offset) * v->pv_scale;
 	v->output = (v->setpoint - v->pv) * v->p;
 }
 
@@ -95,13 +95,24 @@ void handle_packet( SerialData * s ) {
 	if( s->receive_address == ADDRESS ) {
 		PORTD.OUTTGL = GREEN;
 		switch (s->receive_data[0] ) {
+			int16_t angle;	// dont care about initial value
 			case 1:
 				// Update shoulder angle
-				arm.shoulder.setpoint = s->receive_data[1] | (s->receive_data[2]<<8);
+				 angle = s->receive_data[1] | (s->receive_data[2]<<8);
+				if( angle > 144 )
+					angle = 144;
+				else if( angle < -9 )
+					angle = -9;
+				arm.shoulder.setpoint = angle;
 				break;
 			case 2:
 				// Update elbow angle
-				arm.elbow.setpoint = s->receive_data[1] | (s->receive_data[2]<<8);
+				angle = s->receive_data[1] | (s->receive_data[2]<<8);
+				if( angle > 203 )
+					angle = 203;
+				else if( angle < 4 )
+					angle = 4;
+				arm.elbow.setpoint = angle;
 				break;
 			default:
 				// Do nothing?

@@ -58,17 +58,17 @@ int main(void)
 	struct pid * shoulder = &arm.shoulder;
 	struct pid * elbow = &arm.elbow;
 
-	shoulder->pv_scale = 0.01029;
-	shoulder->pv_offset = -327;
+	shoulder->pv_scale = 0.17578;
+	shoulder->pv_offset = 2121;
 	shoulder->p = 40;
 	shoulder->output = 0;
-	shoulder->setpoint = 136;
+	shoulder->setpoint = 130;
 
-	elbow->pv_scale = -0.01029;
-	elbow->pv_offset = 6;
-	elbow->p = 25;
+	elbow->pv_scale = 0.17578;
+	elbow->pv_offset = 2915;
+	elbow->p = -25;
 	elbow->output = 0;
-	elbow->setpoint = 170;
+	elbow->setpoint = 20;
 
 	while(1) {
 		if( get_time() - time > 10 ) 
@@ -83,6 +83,8 @@ int main(void)
 			/*
 			USART_Write( &arm.bb, (unsigned char *)text, mitoa( shoulder->pv, text, 10) );
 			USART_Write( &arm.bb, (unsigned char *)"\t", 1 );
+			USART_Write( &arm.bb, (unsigned char *)text, mitoa( elbow->pv, text, 10) );
+			USART_Write( &arm.bb, (unsigned char *)"\r\n", 2 );
 			*/
 			
 			shoulder_set( shoulder->output );

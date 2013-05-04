@@ -1,7 +1,6 @@
 /*
  * Interface for the digital potentiometers.
- * They use a SPI bus; At the moment I don't know how many bits (probably 10),
- * but I'm hoping they'll accept two bytes and simply output zeros at the end.
+ * They use a SPI bus, but it appears to actually be 12 bit 
  *
  * Author: Marshal Horn
  */
@@ -36,12 +35,12 @@ int16_t get_angle( uint8_t channel ) {
 	//Receive byte 1
 	SPIC.DATA = 0;	//data isn't sent anyway
 	while(!(SPIC.STATUS & 0x80 ));
-	angle = SPIC.DATA<<8;
+	angle = SPIC.DATA<<4;
 	
 	//Receive byte 2
 	SPIC.DATA = 0;	//data isn't sent anyway
 	while(!(SPIC.STATUS & 0x80 ));
-	angle |= SPIC.DATA;
+	angle |= SPIC.DATA>>4;
 	
 	return angle;
 }
