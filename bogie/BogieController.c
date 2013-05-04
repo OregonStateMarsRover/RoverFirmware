@@ -17,8 +17,8 @@
 
 /* Limits are pulled up by default.
  * If they are low, that means it is okay */
-#define LIM0 0x04	// limit 0 on port B
-#define LIM1 0x08	// limit 1 on port B
+#define LIM0 0x04	// left limit 0 on port B
+#define LIM1 0x08	// right limit 1 on port B
 
 
 void init(void)
@@ -26,7 +26,7 @@ void init(void)
 	set_clock( ); // set clock to 16Mhz
 
 	USART_InitPortStructs();
-	
+
 	/***set I/O port directions***/
 	PORTA.DIR = 0x00;
 	PORTB.DIR = 0x00;
@@ -144,12 +144,12 @@ int main(void)
 
 	USART_Write( &bogie.bb, (uint8_t *)"Encoder test\r\n", 14 );
 
-	int8_t i = 0;
-	int8_t inc = 1;
+	int8_t abs_speed = 12;
+	int8_t speed = 0;
 
 	char msg[20];
 	uint8_t msg_len;
-	TCC1.CNT = 5;	// is this even changing?  Apparently not.
+	TCC1.CNT = 0;
 
 	/* Ramp the drive motor speed up and down,
 	 * to test the motor controllers */
@@ -158,16 +158,18 @@ int main(void)
 		if( msg_len > 20 ) msg_len = 20;
 		USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
 
-		actuator_set( i );
+		int8_t limits = PORTB.IN & (LIM0 | LIM1);
+		
+		if( limits == LIM0 )
+			speed = abs_speed;
+		else if( limits == LIM1 )
+			speed = -abs_speed;
+		else if( limits )
+			speed = 0;
 
-		if( i == 50) {
-			inc = -1;
-		} else if( i == -127 ) {
-			inc = 0;
-		}
-		i += inc;
+		actuator_set( speed );
 
-		_delay_ms(70);
+		_delay_ms(50);
 	}
 	return 0;
 }

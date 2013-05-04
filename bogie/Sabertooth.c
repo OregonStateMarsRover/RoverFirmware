@@ -35,6 +35,8 @@ void sabertooth_init(struct USART *p)
 	saber_port = p;
 	uint8_t timeout = 1; //1 * 100ms = 100ms
 
+	_delay_ms(100);
+
 	send_command(TIMEOUT_CMD, timeout);
 	
 
