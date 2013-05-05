@@ -38,26 +38,24 @@ void encoders_init() {
 	//We are using pins 6 and 7 on PORTC.
 	
 	//Set them as inputs.
-	PORTC.DIRCLR = 0xC0;
+	PORTC.DIRCLR = 0x03 << 6;
 
 	// Set the pin configuration for both to low-level sense
-	PORTC.PIN6CTRL = 0x01; // sense rising edge
-	PORTC.PIN7CTRL = 0x03; // sense low level
+	PORTCFG.MPCMASK = 0x03 << 6;
+	PORTC.PIN0CTRL = (PORTC.PIN0CTRL & ~PORT_ISC_gm) | PORT_ISC_LEVEL_gc;
 
 	// Set the first pin as a multiplexer for the event channel.
-	//EVSYS.CH0MUX = 0x60 + 0x08 + 6;	// PORTC, pin 6
-	
-	// For now, we're using interrupts to trigger the event
-	PORTC.INT0MASK = 0x40;
-	PORTC.INTCTRL = 0x03;	// high-level interrupt
-	PMIC.CTRL |= 0x04;	// enable high-level interrpts
+	EVSYS.CH0MUX = 0x60 | 6;	// PORTC, pin 6
 
 	// Enable quadrature decoding and digital filtering on the event channel.
-	EVSYS.CH0CTRL = 0x0F; // eight-sample filter
+	EVSYS.CH0CTRL = EVSYS_QDEN_bm | EVSYS_DIGFILT_2SAMPLES_gc;
 
 	// Set the quadrature decoding as the event action for a timer/counter
 	// Also, select the event channel as the event source for the timer/counter
-	TCC1.CTRLD = 0x68; // event channel 0
+	TCC1.CTRLD = TC_EVACT_QDEC_gc | 0x80;	// QDEC on channel 0
+
+	// We leave the period at the default value of 0xFFFF.
+	TCC1.PER = 0xFFFF;
 
 	// Enable the timer/counter w/out clock prescaling
 	TCC1.CTRLA = 0x01;	// set clock to no prescaling
@@ -67,10 +65,10 @@ void encoders_init() {
 }
 
 
-ISR( PORTC_INT0_vect ) {
-	EVSYS.DATA = PORTC.IN >> 7; // set count direction
-	EVSYS.STROBE = 0x01;		// increment/decrement
+int16_t get_turn( void ) {
+	return TCC1.CNT;
 }
+
 
 /*! \brief This function return the direction of the counter/QDEC.
  *

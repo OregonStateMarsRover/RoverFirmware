@@ -18,7 +18,7 @@
 
 int16_t get_speed( void );
 
-#define get_turn() ((uint16_t)TCC1.CNT)
+int16_t get_turn(void);
 
 void encoders_init( void );
 

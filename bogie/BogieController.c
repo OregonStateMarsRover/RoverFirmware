@@ -170,25 +170,45 @@ int main(void)
 		_delay_ms( 500 );
 	}
 #endif
+	int8_t abs_speed = 5;
 
 	bogie.steer.pv_scale = 1;
 	bogie.steer.p = 0;
 	bogie.steer.output = 0;
 	bogie.steer.setpoint = 120;
 
-	zero_encoders();
+	//zero_encoders();
 
 	char msg[20];
 	uint8_t msg_len;
+	int8_t i = 0;
+
+	while(1) {
+		uint8_t limits = PORTB.IN & 0x0C;
+
+		if( limits == LIM0 )
+			bogie.steer.output = abs_speed;
+		else if( limits == LIM1 )
+			bogie.steer.output = -abs_speed;
+		else if( limits )
+			bogie.steer.output = 0;
+
+		actuator_set( bogie.steer.output );
 
 
-	pid_steer();
+		pid_steer();
 
-	msg_len = snprintf( msg, 20, "%d, ", bogie.steer.pv );
-	if( msg_len > 20 ) msg_len = 20;
-	USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+		if( !(i % 8 ) ){
+			i = 0;
+			msg_len = snprintf( msg, 20, "%x %d\n\r", (PORTC.IN & 0xF0), bogie.steer.pv);
+			if( msg_len > 20 ) msg_len = 20;
+			USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+		}
 
-	_delay_ms( 50 );
+		++i;
+
+		_delay_ms( 50 );
+	}
 
 	return 0;
 }
