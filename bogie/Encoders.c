@@ -72,11 +72,6 @@ ISR( PORTC_INT0_vect ) {
 	EVSYS.STROBE = 0x01;		// increment/decrement
 }
 
-int16_t get_turn()
-{
-	return TCC1.CNT;
-}
-
 /*! \brief This function return the direction of the counter/QDEC.
  *
  * \param qTimer      The timer used for QDEC.

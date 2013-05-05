@@ -1,5 +1,5 @@
 /*BogieCommon.c
- *Authors: Mike Fortner, Chris Newman
+ *Author: Marshal Horn
  */
 
 #include "BogieCommon.h"
@@ -63,3 +63,25 @@ void set_clock( void ) {
 	}
 }
 
+
+/* Setup the realtime clock.
+ * This is not for generating periodic events through interrupts, 
+ * but for actually timing things.
+ */
+void setup_rtc( uint8_t prescaler ) {
+	/* Enable the ULP clock */
+	CLK.RTCCTRL = 0x01;
+
+	/* Setup the RTC */
+	RTC.CNT = 0;
+	RTC.INTCTRL = 0;	// no interrupt
+	RTC.CTRL = prescaler & 0x07;
+}
+
+/* This fuction uses global variables directly, since there is only
+ * one instance of it in a program.
+ */
+void pid_steer( void ) {
+	bogie.steer.pv = get_turn() * bogie.steer.pv_scale;
+	//bogie.steer.output = bogie.steer.p * (bogie.steer.setpoint - bogie.steer.pv);
+}

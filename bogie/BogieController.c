@@ -21,7 +21,6 @@
 #define LIM1 0x08	// right limit 1 on port B
 #define LIMITS (PORTB.IN & 0x0C)
 
-
 void init(void)
 {
 	set_clock( ); // set clock to 16Mhz
@@ -115,13 +114,43 @@ void packet_error( SerialData *s, uint8_t errCode ) {
 }
 
 
+void zero_encoders( void ) {
+	int8_t abs_speed = 100;
+
+	while(!(LIMITS & LIM1)) {
+
+		actuator_set( abs_speed );
+
+		_delay_ms(5);
+	}
+	actuator_set( 0 );
+	_delay_ms( 500 );
+	TCC1.CNT = 0;
+
+	char msg[20];
+	uint8_t msg_len;
+
+	pid_steer();
+
+	msg_len = snprintf( msg, 20, "%d, ", bogie.steer.pv );
+	if( msg_len > 20 ) msg_len = 20;
+	USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
+
+	while(!(LIMITS & LIM0) && (get_turn() < 20000 )) {
+
+		actuator_set( -abs_speed );
+		_delay_ms(5);
+	}
+	actuator_set( 0 );
+	_delay_ms(5);
+	
+}
+
+
 
 int main(void)
 {
 	init();
-
-	RingBuffer * buffer = &(bogie.bb.rx_buffer);
-	uint8_t new_byte;
 	
 #ifdef MOTOR_TEST
 	int8_t i = 0;	int8_t dir = 1;
@@ -141,34 +170,21 @@ int main(void)
 		_delay_ms( 500 );
 	}
 #endif
-	encoders_init();
 
-	USART_Write( &bogie.bb, (uint8_t *)"Encoder test\r\n", 14 );
+	bogie.steer.pv_scale = 1;
+	bogie.steer.p = 0;
+	bogie.steer.output = 0;
+	bogie.steer.setpoint = 120;
 
-	int8_t abs_speed = 17;
-	int8_t speed = 0;
+	zero_encoders();
 
 	char msg[20];
 	uint8_t msg_len;
 
-	while(!(LIMITS & LIM1)) {
 
-		actuator_set( abs_speed );
+	pid_steer();
 
-		_delay_ms(50);
-	}
-	actuator_set( 0 );
-	_delay_ms( 5 );
-	TCC1.CNT = 0;
-
-	while(!(LIMITS & LIM0)) {
-
-		actuator_set( -abs_speed );
-		_delay_ms(50);
-	}
-	actuator_set( 0 );
-	_delay_ms(5);
-	msg_len = snprintf( msg, 20, "%u, ", (uint16_t) get_turn() );
+	msg_len = snprintf( msg, 20, "%d, ", bogie.steer.pv );
 	if( msg_len > 20 ) msg_len = 20;
 	USART_Write( &bogie.bb, (uint8_t *)msg, msg_len );
 
