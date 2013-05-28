@@ -12,6 +12,7 @@
 #include <avr/pgmspace.h>
 
 #include "USART.h"
+#include "common.h"
 
 
 //#define USART_IsTXDataRegisterEmpty(_usart) (((_usart)->STATUS & USART_TXCIF_bm) != 0)
@@ -45,7 +46,7 @@ void USART_InitPortStructs( void ) {
 	USART_BSCALE_TABLE[USART_BAUD_250000] = 1;	
 
 	// 1M baud, 0% error
-	USART_BAUD_TABLE[USART_BAUD_1M] = 1;
+	USART_BAUD_TABLE[USART_BAUD_1M] = 0;
 	USART_BSCALE_TABLE[USART_BAUD_1M] = 0;	
 	
 

@@ -84,7 +84,7 @@ PROJECTNAME=prog_wrist
 # (list all files to compile, e.g. 'a.c b.cpp as.S'):
 # Use .cc, .cpp or .C suffix for C++ files, use .S 
 # (NOT .s !!!) for assembly source code files.
-PRJSRC=USART.c RingBuffer.c wrist.c common.c itoa.c hydraprobe.c
+PRJSRC=USART.c RingBuffer.c wrist.c common.c itoa.c hydraprobe.c ax12.c SerialProtocol.c
  
 # additional includes (e.g. -I/path/to/mydir)
 #INC=-I/path/to/include

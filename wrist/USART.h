@@ -15,9 +15,9 @@
 #include <avr/io.h>
 
 #include <stdbool.h>
+#include "avr_compiler.h"
 
 #include "RingBuffer.h"
-#include "common.h"
 
 #define USART_Format_Set(_usart, _charSize, _parityMode, _twoStopBits)         \
 	(_usart)->CTRLC = (uint8_t) _charSize | _parityMode |                      \
@@ -49,7 +49,9 @@ struct USART_Port {
 	unsigned char txen_pin_bm;
 };
 
-struct USART_Port usart_ports[7];
+typedef struct USART_Port USART_Port;
+
+USART_Port usart_ports[7];
 
 struct USART {
 	char port_num;
@@ -62,7 +64,9 @@ struct USART {
 	RingBuffer rx_buffer;
 };
 
-struct USART * USART_Table[7];
+typedef struct USART USART;
+
+USART * USART_Table[7];
 
 #define USART_BAUD_2400 0
 #define USART_BAUD_4800 1

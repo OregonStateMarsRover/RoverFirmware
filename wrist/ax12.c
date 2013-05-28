@@ -1,10 +1,10 @@
+#include "common.h"
 #include "ax12.h"
 
-void InitServos(USART *device_USART)
+void InitServos( void )
 {
-	servoUSART = device_USART;
-	PanTiltSetCompliance(1,1,1,8,8);
-	_delay_ms(50);
+	//PanTiltSetCompliance(1,1,1,8,8);
+	//_delay_ms(50);
 }
 
 void PanTiltSetPosition(char servo, unsigned short position) {
@@ -20,24 +20,24 @@ void PanTiltSetCompliance(char servo, char CWMargin, char CCWMargin, char CWSlop
 
 void SendServoCommand(char id, char instruction, char paramCount, char params[])
 {      
-	USART_WriteByte(servoUSART,0xFF);
-	USART_WriteByte(servoUSART,0xFF);
-	USART_WriteByte(servoUSART,id); // ID
-	char length = paramCount + 2;
-	USART_WriteByte(servoUSART,length); // Length
+	char start[5];
+	start[0] = 0xff;
+	start[1] = 0xff;
+	start[2] = id;
+	start[3] = paramCount + 2;	//length
+	start[4] = instruction;
 
-	USART_WriteByte(servoUSART,instruction); // Instruction
-	char checksum = 0;
+	USART_Write( ((USART* )wrist.ax12), start, 5 );
+	USART_Write( ((USART *)wrist.ax12), params, paramCount );
+
+	char checksum = id + paramCount + 2 + instruction;
 	char i;
 	for (i = 0; i<paramCount; i++)
 	{
-		USART_WriteByte(servoUSART,params[i]); // Params...
-		checksum += params[i];
+		checksum += params[(int)i];
 	}
-
-	checksum += id + length + instruction;
 	checksum = ~checksum;
 
-	USART_WriteByte(servoUSART,checksum); // Checksum
-}
+	USART_WriteByte((USART*)wrist.ax12,checksum); // Checksum
+} 
 

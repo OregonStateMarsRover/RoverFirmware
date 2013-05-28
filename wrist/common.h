@@ -7,6 +7,8 @@
 
 #include "avr_compiler.h"
 #include <stdlib.h>
+#include "USART.h" 
+#include "SerialProtocol.h"
 #define ADDRESS 9 // Address of the wrist controller
 
 
@@ -35,10 +37,11 @@ void setup_rtc( uint8_t prescaler );
  * worry about what type they are right now.
  */
 struct global{
-	void * probe;
-	void * ax12;
-	void * bus;
-	void * aux;
+	USART * probe;
+	USART * ax12;
+	USART * bus;
+	USART * aux;
+	SerialData * packet;
 	uint8_t new_probe_data;	// set TRUE if there's new data to process
 };
 

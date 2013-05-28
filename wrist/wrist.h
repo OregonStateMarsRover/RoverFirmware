@@ -14,9 +14,17 @@
 #include "itoa.h"
 
 #include "hydraprobe.h"
+#include "ax12.h"
 #include <string.h>
+#include "SerialProtocol.h"
 
 void init( void );
+
+void test_probe( void );
+
+void test_ax12( void );
+
+void handle_packet( SerialData * s);
 
 
 #endif
