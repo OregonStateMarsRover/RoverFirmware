@@ -13,27 +13,6 @@
 
 #include "USART.h"
 
-#define USART_Format_Set(_usart, _charSize, _parityMode, _twoStopBits)         \
-	(_usart)->CTRLC = (uint8_t) _charSize | _parityMode |                      \
-	(_twoStopBits ? USART_SBMODE_bm : 0)
-
-#define USART_Rx_Enable(_usart) ((_usart)->CTRLB |= USART_RXEN_bm)
-#define USART_Rx_Disable(_usart) ((_usart)->CTRLB &= ~USART_RXEN_bm)
-#define USART_Tx_Enable(_usart)	((_usart)->CTRLB |= USART_TXEN_bm)
-#define USART_Tx_Disable(_usart) ((_usart)->CTRLB &= ~USART_TXEN_bm)
-
-#define USART_RxdInterruptLevel_Set(_usart, _rxdIntLevel)                      \
-	((_usart)->CTRLA = ((_usart)->CTRLA & ~USART_RXCINTLVL_gm) | _rxdIntLevel)
-
-#define USART_TxdInterruptLevel_Set(_usart, _txdIntLevel)                      \
-	(_usart)->CTRLA = ((_usart)->CTRLA & ~USART_TXCINTLVL_gm) | _txdIntLevel
-
-#define USART_IsTXDataRegisterEmpty(_usart) (((_usart)->STATUS & USART_DREIF_bm) != 0)
-#define USART_IsTXComplete(_usart) (((_usart)->STATUS & USART_TXCIF_bm) != 0)
-
-#define USART_TXEn_Disable(_usart) if ((_usart)->use_rs485) \
-	(_usart)->port.gpio_port->OUTCLR = (_usart)->port.txen_pin_bm;
-
 
 //#define USART_IsTXDataRegisterEmpty(_usart) (((_usart)->STATUS & USART_TXCIF_bm) != 0)
 
@@ -121,7 +100,10 @@ void USART_InitPortStructs( void ) {
 	// 	usart_ports[6].txen_pin_bm = PIN4_bm;
 }
 
-void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485 ) {
+struct USART * USART_Open(unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485 ) {
+
+	// I know malloc is dangerous on an embedded device, but it's very convenient to use here.
+	struct USART * serial = malloc( sizeof( struct USART ) );
 
 	serial->port_num = port;
 	serial->port = usart_ports[port];
@@ -171,6 +153,8 @@ void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_ra
 	PMIC.CTRL |= PMIC_LOLVLEX_bm;	// enable low-level interrupts
 
 	sei();	// enable interrupts
+
+	return serial;
 }
 
 unsigned short USART_Write(struct USART * serial, char * buf, unsigned short num_bytes) {
@@ -273,7 +257,13 @@ ISR(USARTC0_DRE_vect)
 
 ISR(USARTC1_RXC_vect)
 {
+	cli();
+	if( USARTC1.DATA == '\r' ) {
+		wrist.new_probe_data = 1;
+		USART_Rx_Disable( &USARTC1 );
+	}
 	USART_RXIntComplete(1);
+	sei();
 }
 
 ISR(USARTC1_TXC_vect)

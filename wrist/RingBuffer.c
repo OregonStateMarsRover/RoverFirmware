@@ -9,7 +9,9 @@
 
 #include <stdlib.h> // for malloc()
 #include <string.h> // for memcpy()
-#include <avr/interrupt.h> //for sei() and cli()
+//#include <avr/interrupt.h> //for sei() and cli()
+#define cli();
+#define sei();
 
 #include "RingBuffer.h"
 

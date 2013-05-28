@@ -17,6 +17,28 @@
 #include <stdbool.h>
 
 #include "RingBuffer.h"
+#include "common.h"
+
+#define USART_Format_Set(_usart, _charSize, _parityMode, _twoStopBits)         \
+	(_usart)->CTRLC = (uint8_t) _charSize | _parityMode |                      \
+	(_twoStopBits ? USART_SBMODE_bm : 0)
+
+#define USART_Rx_Enable(_usart) ((_usart)->CTRLB |= USART_RXEN_bm)
+#define USART_Rx_Disable(_usart) ((_usart)->CTRLB &= ~USART_RXEN_bm)
+#define USART_Tx_Enable(_usart)	((_usart)->CTRLB |= USART_TXEN_bm)
+#define USART_Tx_Disable(_usart) ((_usart)->CTRLB &= ~USART_TXEN_bm)
+
+#define USART_RxdInterruptLevel_Set(_usart, _rxdIntLevel)                      \
+	((_usart)->CTRLA = ((_usart)->CTRLA & ~USART_RXCINTLVL_gm) | _rxdIntLevel)
+
+#define USART_TxdInterruptLevel_Set(_usart, _txdIntLevel)                      \
+	(_usart)->CTRLA = ((_usart)->CTRLA & ~USART_TXCINTLVL_gm) | _txdIntLevel
+
+#define USART_IsTXDataRegisterEmpty(_usart) (((_usart)->STATUS & USART_DREIF_bm) != 0)
+#define USART_IsTXComplete(_usart) (((_usart)->STATUS & USART_TXCIF_bm) != 0)
+
+#define USART_TXEn_Disable(_usart) if ((_usart)->use_rs485) \
+	(_usart)->port.gpio_port->OUTCLR = (_usart)->port.txen_pin_bm;
 
 struct USART_Port {
 	USART_t * usart_port;
@@ -78,7 +100,7 @@ void USART_InitPortStructs( void );
  * rx_buf: Number of bytes to allocate for RX buffer.
  * use_rs485: If true, serial port is half-duplex and the RS-485 transceiver hardware will enabled before each transmission. 
  */
-void USART_Open(struct USART * serial, unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485);
+struct USART * USART_Open(unsigned char port, unsigned char baud_rate, unsigned short tx_buf, unsigned short rx_buf, bool use_rs485);
 
 /**
  * Add data to the TX buffer to be transmitted.

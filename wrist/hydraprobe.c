@@ -15,6 +15,7 @@
 #include "hydraprobe.h"
 
 #define PROBE "mar"
+#define PORT wrist.probe
 
 /* The way I see this working is having a bunch of functions that
  * do different things - one for setting parameters, one for
@@ -32,25 +33,25 @@
  */
 
 uint8_t hydraprobe_exec( char * command ){
-	USART_Write( &wrist.soil, PROBE, 3 );
-	USART_Write( &wrist.soil, command, 2 );
-	USART_Write( &wrist.soil, "\r\n", 2 );
+	USART_Write( PORT, PROBE, 3 );
+	USART_Write( PORT, command, 2 );
+	USART_Write( PORT, "\r\n", 2 );
 	return 0x01;
 }
 
 uint8_t hydraprobe_query( char * command ){
-	USART_Write( &wrist.soil, PROBE, 3 );
-	USART_Write( &wrist.soil, command, 2 );
-	USART_Write( &wrist.soil, "=?\r\n", 4 );
+	USART_Write( PORT, PROBE, 3 );
+	USART_Write( PORT, command, 2 );
+	USART_Write( PORT, "=?\r\n", 4 );
 	return 0x02;
 }
 
 uint8_t hydraprobe_assign( char * command, char * data, uint8_t len ){
-	USART_Write( &wrist.soil, PROBE, 3 );
-	USART_Write( &wrist.soil, command, 2 );
-	USART_Write( &wrist.soil, "=", 1 );
-	USART_Write( &wrist.soil, data, len );
-	USART_Write( &wrist.soil, "\r\n", 2 );
+	USART_Write( PORT, PROBE, 3 );
+	USART_Write( PORT, command, 2 );
+	USART_Write( PORT, "=", 1 );
+	USART_Write( PORT, data, len );
+	USART_Write( PORT, "\r\n", 2 );
 	return 0x04;
 }
 
@@ -86,7 +87,7 @@ char * hydraprobe_index( char * message, uint8_t index ){
 
 	uint8_t count = 0;
 	while(*message) {
-		if( *message == '+' )
+		if( (*message == '+') || (*message == '=' ) )
 			++count;
 		++message;
 		if( count == index )
@@ -112,7 +113,7 @@ char * hydraprobe_copy( char * dest, char * message ) {
 	while( *message != '+' && *message != '\r' ) {
 		*dest++ = *message++;	// post-increment operators
 	}
-	dest++ = ' ';	// space seperator
+	*dest++ = ' ';	// space seperator
 	return dest;
 }
 
@@ -136,3 +137,5 @@ uint8_t hydraprobe_decode( char * dest, char * message ) {
 	return (dest - orig);	// size of string
 }
 
+#undef PROBE
+#undef PORT
