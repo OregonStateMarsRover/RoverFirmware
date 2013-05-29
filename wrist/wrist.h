@@ -26,5 +26,6 @@ void test_ax12( void );
 
 void handle_packet( SerialData * s);
 
+void process_data( void );
 
 #endif

@@ -10,11 +10,23 @@ int main( void ) {
 
 	init();
 
-	while( 1 ) {
+	while(1) {
+		process_data();
+		
 	}
 
-
 	return 0;
+}
+
+void process_data( void ) {
+	PORTE.OUTTGL = 0x01;
+	RingBuffer * buffer = &(wrist.bus->rx_buffer);
+	uint8_t new_byte;
+
+	if( RingBufferBytesUsed( buffer ) ) {
+		new_byte = RingBufferGetByte( buffer );
+		ProcessDataChar( wrist.packet, new_byte );
+	}
 }
 
 /* This is very sloppy of me - I don't check to see if the data sent is long
@@ -23,6 +35,7 @@ int main( void ) {
  * the robustness of this function.
  */
 void handle_packet( SerialData * s ) {
+	PORTE.OUTTGL = 0x02;
 	if( (s->receive_address == ADDRESS) && (s->receive_length > 0) ){
 		uint16_t angle;
 		switch( s->receive_data[0] ) {
@@ -83,7 +96,7 @@ void init( void ) {
 	USART_InitPortStructs();
 	wrist.bus 	=	USART_Open( 0, USART_BAUD_115200, 	20, 20, true );
 	wrist.probe =	USART_Open( 1, USART_BAUD_9600, 	20, 20, true );
-	wrist.ax12	=	USART_Open( 2, USART_BAUD_250000,		20, 20, true );
+	wrist.ax12	=	USART_Open( 2, USART_BAUD_250000,	20, 20, true );
 	wrist.aux	=	USART_Open( 3, USART_BAUD_115200, 	100, 20, false );
 
 	char clear[9] = { 27, '[', '2', 'J', 27, '[', '?', '6', 'h' };	// for clearing the screen in a vt100 terminal
@@ -93,6 +106,8 @@ void init( void ) {
 
 	SerialDataInitialize( wrist.packet );
 	wrist.packet->ReceivePacketComplete = handle_packet;
+
+	sei();
 }
 
 void test_probe( void ) {
@@ -145,9 +160,9 @@ void test_probe( void ) {
 
 				rcv_len = RingBufferGetData( probe_rx, buf, BUF_SIZE );
 				/* rcv_len = RingBufferBytesUsed( probe_rx );
-				for( int i = 0; i <= rcv_len; ++i ) {
-					buf[i] = RingBufferGetByte( probe_rx );
-				} */
+				   for( int i = 0; i <= rcv_len; ++i ) {
+				   buf[i] = RingBufferGetByte( probe_rx );
+				   } */
 				USART_Write( wrist.aux, "\r\nReceived ", 11 );
 				USART_Write( wrist.aux, num , mitoa( rcv_len, num, 10 ) );
 				USART_Write( wrist.aux, " bytes: ", 8 );
@@ -168,6 +183,6 @@ void test_probe( void ) {
 				break;
 
 		}
-		
+
 	}
 }
